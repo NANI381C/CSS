@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Interactive Solar System</title>
+
+<style>
+
+body{
+margin:0;
+background:black;
+overflow:hidden;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+}
+
+/* STAR BACKGROUND */
+
+.stars{
+position:fixed;
+width:100%;
+height:100%;
+background:black;
+}
+
+.star{
+position:absolute;
+width:2px;
+height:2px;
+background:white;
+animation:twinkle 2s infinite alternate;
+}
+
+@keyframes twinkle{
+from{opacity:0.2;}
+to{opacity:1;}
+}
+
+/* SOLAR SYSTEM */
+
+#universe{
+position:absolute;
+width:2000px;
+height:2000px;
+transform-origin:center;
+}
+
+.solar-system{
+position:absolute;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+}
+
+/* SUN */
+
+.sun{
+position:absolute;
+width:140px;
+height:140px;
+background:radial-gradient(circle,#ffd700,#ff8c00);
+border-radius:50%;
+box-shadow:0 0 100px orange;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+}
+
+/* ORBITS */
+
+.orbit{
+position:absolute;
+border:1px dotted rgba(255,255,255,0.2);
+border-radius:50%;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+animation:spin linear infinite;
+}
+
+/* PLANETS */
+
+.planet{
+position:absolute;
+top:-15px;
+left:50%;
+transform:translateX(-50%);
+border-radius:50%;
+background-size:cover;
+animation:rotate 10s linear infinite;
+}
+
+/* PLANET TEXTURES */
+
+.mercury{background:url("https://upload.wikimedia.org/wikipedia/commons/4/4a/Mercury_in_true_color.jpg") center/cover;}
+.venus{background:url("https://upload.wikimedia.org/wikipedia/commons/e/e5/Venus-real_color.jpg") center/cover;}
+.earth{background:url("https://upload.wikimedia.org/wikipedia/commons/9/97/The_Earth_seen_from_Apollo_17.jpg") center/cover;}
+.mars{background:url("https://upload.wikimedia.org/wikipedia/commons/0/02/OSIRIS_Mars_true_color.jpg") center/cover;}
+.jupiter{background:url("https://upload.wikimedia.org/wikipedia/commons/e/e2/Jupiter.jpg") center/cover;}
+.saturn{background:url("https://upload.wikimedia.org/wikipedia/commons/c/c7/Saturn_during_Equinox.jpg") center/cover;}
+.uranus{background:url("https://upload.wikimedia.org/wikipedia/commons/3/3d/Uranus2.jpg") center/cover;}
+.neptune{background:url("https://upload.wikimedia.org/wikipedia/commons/5/56/Neptune_Full.jpg") center/cover;}
+
+/* ORBIT SIZES */
+
+.mercury-orbit{width:180px;height:180px;animation-duration:5s;}
+.venus-orbit{width:250px;height:250px;animation-duration:8s;}
+.earth-orbit{width:330px;height:330px;animation-duration:12s;}
+.mars-orbit{width:400px;height:400px;animation-duration:16s;}
+.jupiter-orbit{width:500px;height:500px;animation-duration:22s;}
+.saturn-orbit{width:600px;height:600px;animation-duration:28s;}
+.uranus-orbit{width:700px;height:700px;animation-duration:34s;}
+.neptune-orbit{width:800px;height:800px;animation-duration:40s;}
+
+/* PLANET SIZE */
+
+.mercury{width:14px;height:14px;}
+.venus{width:18px;height:18px;}
+.earth{width:20px;height:20px;}
+.mars{width:18px;height:18px;}
+.jupiter{width:40px;height:40px;}
+.saturn{width:36px;height:36px;}
+.uranus{width:28px;height:28px;}
+.neptune{width:28px;height:28px;}
+
+/* MOON */
+
+.moon-orbit{
+position:absolute;
+width:60px;
+height:60px;
+border-radius:50%;
+animation:spin 4s linear infinite;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+}
+
+.moon{
+width:8px;
+height:8px;
+background:gray;
+border-radius:50%;
+position:absolute;
+top:-4px;
+left:50%;
+transform:translateX(-50%);
+}
+
+/* ASTEROID BELT */
+
+.asteroid{
+position:absolute;
+width:3px;
+height:3px;
+background:#aaa;
+border-radius:50%;
+}
+
+/* SATURN RING */
+
+.saturn::after{
+content:"";
+position:absolute;
+width:60px;
+height:20px;
+border:2px solid rgba(255,255,255,0.5);
+border-radius:50%;
+top:8px;
+left:-12px;
+transform:rotate(20deg);
+}
+
+/* ANIMATIONS */
+
+@keyframes spin{
+from{transform:translate(-50%,-50%) rotate(0deg);}
+to{transform:translate(-50%,-50%) rotate(360deg);}
+}
+
+@keyframes rotate{
+from{transform:rotate(0deg);}
+to{transform:rotate(360deg);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="stars"></div>
+
+<div id="universe">
+<div class="solar-system">
+
+<div class="sun"></div>
+
+<div class="orbit mercury-orbit"><div class="planet mercury"></div></div>
+<div class="orbit venus-orbit"><div class="planet venus"></div></div>
+
+<div class="orbit earth-orbit">
+<div class="planet earth">
+<div class="moon-orbit">
+<div class="moon"></div>
+</div>
+</div>
+</div>
+
+<div class="orbit mars-orbit"><div class="planet mars"></div></div>
+<div class="orbit jupiter-orbit"><div class="planet jupiter"></div></div>
+<div class="orbit saturn-orbit"><div class="planet saturn"></div></div>
+<div class="orbit uranus-orbit"><div class="planet uranus"></div></div>
+<div class="orbit neptune-orbit"><div class="planet neptune"></div></div>
+
+</div>
+</div>
+
+<script>
+
+/* CREATE TWINKLING STARS */
+
+for(let i=0;i<300;i++){
+let star=document.createElement("div");
+star.className="star";
+star.style.left=Math.random()*100+"%";
+star.style.top=Math.random()*100+"%";
+star.style.animationDuration=(1+Math.random()*3)+"s";
+document.querySelector(".stars").appendChild(star);
+}
+
+/* ASTEROID BELT */
+
+for(let i=0;i<200;i++){
+let a=document.createElement("div");
+a.className="asteroid";
+let angle=Math.random()*360;
+let radius=450+Math.random()*80;
+
+a.style.left=1000+radius*Math.cos(angle)+"px";
+a.style.top=1000+radius*Math.sin(angle)+"px";
+
+document.getElementById("universe").appendChild(a);
+}
+
+/* ZOOM + DRAG */
+
+let scale=1;
+let universe=document.getElementById("universe");
+
+document.addEventListener("wheel",(e)=>{
+scale+=e.deltaY*-0.001;
+scale=Math.min(Math.max(.5,scale),3);
+universe.style.transform="scale("+scale+")";
+});
+
+let isDown=false,startX,startY;
+
+document.addEventListener("mousedown",(e)=>{
+isDown=true;
+startX=e.clientX-universe.offsetLeft;
+startY=e.clientY-universe.offsetTop;
+});
+
+document.addEventListener("mouseup",()=>isDown=false);
+
+document.addEventListener("mousemove",(e)=>{
+if(!isDown)return;
+universe.style.left=e.clientX-startX+"px";
+universe.style.top=e.clientY-startY+"px";
+});
+
+</script>
+
+</body>
+</html>

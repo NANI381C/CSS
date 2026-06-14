@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>PayFlow – UPI Payments</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+
+:root{
+  --purple:#5f2eea;
+  --purple-light:#7c4ff5;
+  --purple-dark:#3d1cb0;
+  --indigo:#4338ca;
+  --bg:#f4f3ff;
+  --card:#ffffff;
+  --text:#1a1035;
+  --text2:#6b7280;
+  --text3:#9ca3af;
+  --border:#e9e7ff;
+  --green:#10b981;
+  --red:#ef4444;
+  --orange:#f97316;
+  --yellow:#f59e0b;
+  --cyan:#06b6d4;
+  --pink:#ec4899;
+  --radius:18px;
+  --shadow:0 4px 24px rgba(95,46,234,0.10);
+  --shadow-sm:0 2px 8px rgba(95,46,234,0.08);
+}
+
+html,body{
+  height:100%;
+  background:#2d1b69;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  overflow:hidden;
+}
+
+/* Phone shell */
+.phone{
+  width:390px;
+  height:820px;
+  background:var(--bg);
+  border-radius:46px;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  box-shadow:
+    0 0 0 10px #1a0f3c,
+    0 0 0 12px #2d1b69,
+    0 40px 100px rgba(0,0,0,0.6);
+}
+
+/* Status bar */
+.status-bar{
+  background:var(--purple);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:10px 24px 6px;
+  font-size:11px;
+  font-weight:600;
+  color:rgba(255,255,255,0.9);
+  letter-spacing:0.3px;
+  flex-shrink:0;
+}
+
+/* Screens */
+.screen{
+  display:none;
+  flex-direction:column;
+  flex:1;
+  overflow:hidden;
+}
+.screen.active{display:flex;}
+
+/* ─── HOME SCREEN ─────────────────────────────── */
+#home{background:var(--bg);}
+
+.home-header{
+  background:linear-gradient(160deg,#5f2eea 0%,#3d1cb0 60%,#2d1b69 100%);
+  padding:16px 22px 30px;
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.home-header::before{
+  content:'';
+  position:absolute;
+  top:-40px;right:-40px;
+  width:180px;height:180px;
+  background:rgba(255,255,255,0.05);
+  border-radius:50%;
+}
+.home-header::after{
+  content:'';
+  position:absolute;
+  bottom:-60px;left:20px;
+  width:120px;height:120px;
+  background:rgba(255,255,255,0.04);
+  border-radius:50%;
+}
+
+.header-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:18px;
+}
+
+.app-logo{
+  font-size:18px;
+  font-weight:800;
+  color:#fff;
+  letter-spacing:-0.5px;
+}
+.app-logo span{color:#a78bfa;}
+
+.header-icons{
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+
+.icon-btn{
+  width:34px;height:34px;
+  background:rgba(255,255,255,0.12);
+  border:none;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+  font-size:14px;
+  color:#fff;
+  transition:background 0.15s;
+}
+.icon-btn:hover{background:rgba(255,255,255,0.2);}
+
+.balance-card{
+  background:rgba(255,255,255,0.12);
+  border:1px solid rgba(255,255,255,0.18);
+  border-radius:16px;
+  padding:14px 16px;
+  backdrop-filter:blur(10px);
+  position:relative;
+  z-index:1;
+}
+.balance-label{font-size:11px;color:rgba(255,255,255,0.65);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.balance-amount{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px;}
+.balance-sub{font-size:11px;color:rgba(255,255,255,0.55);margin-top:2px;}
+.balance-row{display:flex;justify-content:space-between;align-items:flex-end;}
+.upi-badge{
+  background:rgba(255,255,255,0.15);
+  border-radius:8px;
+  padding:5px 9px;
+  font-family:'DM Mono',monospace;
+  font-size:10px;
+  color:rgba(255,255,255,0.8);
+}
+
+/* Home body scroll */
+.home-body{
+  flex:1;
+  overflow-y:auto;
+  padding:16px 16px 80px;
+}
+.home-body::-webkit-scrollbar{display:none;}
+
+/* Quick actions */
+.section-title{
+  font-size:13px;
+  font-weight:700;
+  color:var(--text2);
+  letter-spacing:0.5px;
+  text-transform:uppercase;
+  margin-bottom:12px;
+}
+
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:20px;
+}
+
+.q-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:6px;
+  cursor:pointer;
+}
+.q-icon{
+  width:52px;height:52px;
+  border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  transition:transform 0.15s, box-shadow 0.15s;
+  box-shadow:var(--shadow-sm);
+}
+.q-item:hover .q-icon{transform:translateY(-2px);box-shadow:var(--shadow);}
+.q-label{font-size:10px;font-weight:600;color:var(--text2);text-align:center;line-height:1.2;}
+
+/* Banners */
+.banner-scroll{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  margin-bottom:20px;
+  padding-bottom:4px;
+}
+.banner-scroll::-webkit-scrollbar{display:none;}
+.banner{
+  min-width:240px;
+  height:100px;
+  border-radius:16px;
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  position:relative;
+  overflow:hidden;
+  flex-shrink:0;
+  cursor:pointer;
+}
+.banner::after{
+  content:'';
+  position:absolute;
+  right:-20px;top:-20px;
+  width:100px;height:100px;
+  background:rgba(255,255,255,0.1);
+  border-radius:50%;
+}
+.banner-tag{font-size:10px;font-weight:700;color:rgba(255,255,255,0.7);letter-spacing:1px;text-transform:uppercase;}
+.banner-title{font-size:15px;font-weight:800;color:#fff;line-height:1.2;}
+.banner-sub{font-size:11px;color:rgba(255,255,255,0.7);}
+
+/* Contacts */
+.contacts-row{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  margin-bottom:20px;
+}
+.contacts-row::-webkit-scrollbar{display:none;}
+.contact-item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px;
+  cursor:pointer;
+  flex-shrink:0;
+}
+.contact-avatar{
+  width:46px;height:46px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  font-weight:700;
+  color:#fff;
+  font-family:'DM Mono',monospace;
+}
+.contact-name{font-size:10px;font-weight:600;color:var(--text);text-align:center;}
+
+/* Transactions */
+.tx-card{
+  background:var(--card);
+  border-radius:var(--radius);
+  padding:4px 0;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:12px;
+}
+.tx-item{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:11px 14px;
+  cursor:pointer;
+  transition:background 0.12s;
+  border-radius:12px;
+}
+.tx-item:hover{background:#f9f8ff;}
+.tx-avatar{
+  width:40px;height:40px;
+  border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;
+  flex-shrink:0;
+}
+.tx-info{flex:1;}
+.tx-name{font-size:13px;font-weight:600;color:var(--text);}
+.tx-desc{font-size:11px;color:var(--text3);margin-top:1px;}
+.tx-amount{font-size:14px;font-weight:700;}
+.tx-amount.cr{color:var(--green);}
+.tx-amount.dr{color:var(--text);}
+
+/* Bottom nav */
+.bottom-nav{
+  background:var(--card);
+  border-top:1px solid var(--border);
+  display:flex;
+  padding:8px 0 12px;
+  flex-shrink:0;
+  box-shadow:0 -4px 20px rgba(95,46,234,0.08);
+}
+.nav-item{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:3px;
+  cursor:pointer;
+  padding:4px 0;
+  border:none;
+  background:none;
+}
+.nav-icon{font-size:20px;transition:transform 0.15s;}
+.nav-label{font-size:9px;font-weight:600;color:var(--text3);letter-spacing:0.3px;}
+.nav-item.active .nav-icon{transform:scale(1.1);}
+.nav-item.active .nav-label{color:var(--purple);font-weight:700;}
+
+/* ─── SEND MONEY SCREEN ────────────────────────── */
+#send{background:var(--bg);}
+
+.screen-header{
+  background:linear-gradient(160deg,#5f2eea,#3d1cb0);
+  padding:14px 20px 20px;
+  flex-shrink:0;
+}
+.back-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-bottom:12px;
+}
+.back-btn{
+  width:32px;height:32px;
+  background:rgba(255,255,255,0.15);
+  border:none;
+  border-radius:50%;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+}
+.screen-title-text{font-size:16px;font-weight:700;color:#fff;}
+
+.search-box{
+  background:rgba(255,255,255,0.15);
+  border:1px solid rgba(255,255,255,0.2);
+  border-radius:12px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 14px;
+}
+.search-box input{
+  background:none;border:none;outline:none;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;color:#fff;flex:1;
+}
+.search-box input::placeholder{color:rgba(255,255,255,0.5);}
+.search-box span{color:rgba(255,255,255,0.6);font-size:14px;}
+
+.send-body{
+  flex:1;overflow-y:auto;
+  padding:16px 16px 80px;
+}
+.send-body::-webkit-scrollbar{display:none;}
+
+.send-options{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-bottom:20px;
+}
+.send-opt{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:transform 0.15s, box-shadow 0.15s;
+  border:1.5px solid transparent;
+}
+.send-opt:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--border);}
+.send-opt-icon{width:40px;height:40px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.send-opt-label{font-size:12px;font-weight:700;color:var(--text);line-height:1.2;}
+.send-opt-sub{font-size:10px;color:var(--text3);}
+
+.contacts-list{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  overflow:hidden;
+}
+.contact-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 16px;
+  cursor:pointer;
+  transition:background 0.12s;
+  border-bottom:1px solid var(--border);
+}
+.contact-row:last-child{border-bottom:none;}
+.contact-row:hover{background:#f9f8ff;}
+.contact-row .contact-avatar{width:42px;height:42px;font-size:14px;}
+.contact-row-info{flex:1;}
+.contact-row-name{font-size:13px;font-weight:600;color:var(--text);}
+.contact-row-upi{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.contact-row-arrow{color:var(--text3);font-size:12px;}
+
+/* ─── PAY SCREEN ──────────────────────────────── */
+#pay{background:var(--bg);}
+
+.pay-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  padding:24px 20px;
+  overflow-y:auto;
+}
+.pay-body::-webkit-scrollbar{display:none;}
+
+.pay-recipient{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+  padding:24px;
+  background:var(--card);
+  border-radius:20px;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:20px;
+}
+.pay-avatar{
+  width:64px;height:64px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:800;
+  color:#fff;
+  margin-bottom:4px;
+}
+.pay-name{font-size:17px;font-weight:700;color:var(--text);}
+.pay-upi{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;}
+
+.amount-section{
+  background:var(--card);
+  border-radius:20px;
+  padding:24px 20px;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:16px;
+  text-align:center;
+}
+.amount-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px;}
+.amount-input-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  margin-bottom:8px;
+}
+.rupee-sign{font-size:28px;font-weight:700;color:var(--purple);}
+.amount-input{
+  font-size:42px;
+  font-weight:800;
+  color:var(--text);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  border:none;outline:none;
+  background:none;
+  width:200px;
+  text-align:center;
+  caret-color:var(--purple);
+}
+.quick-amounts{
+  display:flex;
+  gap:8px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-top:12px;
+}
+.quick-amt{
+  background:#f4f3ff;
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:5px 14px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--purple);
+  cursor:pointer;
+  transition:all 0.12s;
+}
+.quick-amt:hover{background:var(--purple);color:#fff;border-color:var(--purple);}
+
+.note-input{
+  background:var(--card);
+  border-radius:14px;
+  padding:12px 16px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:var(--shadow-sm);
+  margin-bottom:20px;
+}
+.note-input span{font-size:16px;}
+.note-input input{
+  background:none;border:none;outline:none;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;color:var(--text);flex:1;
+}
+.note-input input::placeholder{color:var(--text3);}
+
+.pay-btn{
+  background:linear-gradient(135deg,var(--purple),var(--purple-dark));
+  color:#fff;
+  border:none;
+  border-radius:16px;
+  padding:16px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:15px;
+  font-weight:700;
+  cursor:pointer;
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  box-shadow:0 8px 24px rgba(95,46,234,0.35);
+  transition:transform 0.15s, box-shadow 0.15s;
+  letter-spacing:0.3px;
+}
+.pay-btn:hover{transform:translateY(-1px);box-shadow:0 12px 30px rgba(95,46,234,0.4);}
+.pay-btn:active{transform:scale(0.98);}
+
+/* ─── SUCCESS SCREEN ──────────────────────────── */
+#success{background:var(--bg);}
+.success-body{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:24px 24px 80px;
+  gap:16px;
+  text-align:center;
+}
+.success-ring{
+  width:100px;height:100px;
+  border-radius:50%;
+  background:linear-gradient(135deg,#10b981,#059669);
+  display:flex;align-items:center;justify-content:center;
+  font-size:42px;
+  box-shadow:0 12px 40px rgba(16,185,129,0.35);
+  animation:popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+}
+@keyframes popIn{
+  from{transform:scale(0);opacity:0;}
+  to{transform:scale(1);opacity:1;}
+}
+.success-title{font-size:24px;font-weight:800;color:var(--text);}
+.success-amount{font-size:36px;font-weight:800;color:var(--purple);}
+.success-to{font-size:14px;color:var(--text2);}
+.success-txn{font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);background:var(--border);padding:6px 14px;border-radius:20px;}
+.success-actions{display:flex;gap:10px;width:100%;margin-top:8px;}
+.success-btn{
+  flex:1;border:none;border-radius:14px;padding:14px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;
+}
+.success-btn.primary{background:var(--purple);color:#fff;box-shadow:0 6px 20px rgba(95,46,234,0.3);}
+.success-btn.secondary{background:var(--card);color:var(--purple);border:1.5px solid var(--border);}
+
+/* ─── HISTORY SCREEN ──────────────────────────── */
+#history{background:var(--bg);}
+.history-body{flex:1;overflow-y:auto;padding:12px 16px 80px;}
+.history-body::-webkit-scrollbar{display:none;}
+
+.history-filter{
+  display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;
+}
+.history-filter::-webkit-scrollbar{display:none;}
+.filter-pill{
+  background:var(--card);
+  border:1.5px solid var(--border);
+  border-radius:20px;
+  padding:6px 14px;
+  font-size:11px;font-weight:600;
+  color:var(--text2);cursor:pointer;
+  white-space:nowrap;
+  transition:all 0.12s;
+  flex-shrink:0;
+}
+.filter-pill.active{background:var(--purple);color:#fff;border-color:var(--purple);}
+
+.history-group{margin-bottom:16px;}
+.history-date{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:8px;padding:0 4px;}
+
+/* ─── PROFILE SCREEN ──────────────────────────── */
+#profile{background:var(--bg);}
+.profile-header{
+  background:linear-gradient(160deg,#5f2eea,#3d1cb0);
+  padding:24px 20px 32px;
+  flex-shrink:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:8px;
+}
+.profile-avatar{
+  width:72px;height:72px;
+  border-radius:50%;
+  background:rgba(255,255,255,0.2);
+  border:3px solid rgba(255,255,255,0.4);
+  display:flex;align-items:center;justify-content:center;
+  font-size:28px;font-weight:800;color:#fff;
+  margin-bottom:4px;
+}
+.profile-name{font-size:18px;font-weight:800;color:#fff;}
+.profile-phone{font-size:12px;color:rgba(255,255,255,0.65);font-family:'DM Mono',monospace;}
+.profile-upi{
+  background:rgba(255,255,255,0.15);
+  border-radius:20px;padding:5px 14px;
+  font-size:11px;color:rgba(255,255,255,0.8);
+  font-family:'DM Mono',monospace;
+}
+
+.profile-body{flex:1;overflow-y:auto;padding:16px 16px 80px;}
+.profile-body::-webkit-scrollbar{display:none;}
+
+.profile-section{
+  background:var(--card);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow-sm);
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.profile-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;
+  border-bottom:1px solid var(--border);
+  cursor:pointer;
+  transition:background 0.12s;
+}
+.profile-row:last-child{border-bottom:none;}
+.profile-row:hover{background:#f9f8ff;}
+.profile-row-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.profile-row-info{flex:1;}
+.profile-row-label{font-size:13px;font-weight:600;color:var(--text);}
+.profile-row-sub{font-size:11px;color:var(--text3);}
+.profile-row-arrow{color:var(--text3);font-size:12px;}
+
+/* ─── PIN MODAL ───────────────────────────────── */
+.modal-overlay{
+  position:absolute;inset:0;
+  background:rgba(10,5,30,0.7);
+  backdrop-filter:blur(6px);
+  display:none;
+  align-items:flex-end;
+  justify-content:center;
+  z-index:100;
+}
+.modal-overlay.show{display:flex;}
+.modal{
+  background:var(--card);
+  border-radius:28px 28px 0 0;
+  padding:24px 24px 32px;
+  width:100%;
+  animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1) both;
+}
+@keyframes slideUp{
+  from{transform:translateY(100%);}
+  to{transform:translateY(0);}
+}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px;}
+.modal-title{font-size:16px;font-weight:800;color:var(--text);text-align:center;margin-bottom:4px;}
+.modal-sub{font-size:12px;color:var(--text3);text-align:center;margin-bottom:20px;}
+
+.pin-dots{display:flex;gap:12px;justify-content:center;margin-bottom:24px;}
+.pin-dot{
+  width:14px;height:14px;border-radius:50%;
+  border:2px solid var(--border);
+  background:transparent;
+  transition:all 0.15s;
+}
+.pin-dot.filled{background:var(--purple);border-color:var(--purple);transform:scale(1.1);}
+
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pin-key{
+  background:#f4f3ff;border:none;
+  border-radius:14px;
+  padding:14px;
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:18px;font-weight:700;
+  color:var(--text);
+  cursor:pointer;
+  transition:all 0.1s;
+}
+.pin-key:hover{background:var(--border);}
+.pin-key:active{transform:scale(0.93);}
+.pin-key.del{background:#fff0f3;color:var(--red);font-size:16px;}
+.pin-key.ok{background:var(--purple);color:#fff;font-size:14px;font-weight:700;box-shadow:0 4px 14px rgba(95,46,234,0.3);}
+
+/* Chip / toast */
+.toast{
+  position:absolute;
+  top:60px;left:50%;transform:translateX(-50%) translateY(-10px);
+  background:#1a1035;
+  color:#fff;
+  padding:8px 16px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  opacity:0;
+  transition:all 0.3s;
+  white-space:nowrap;
+  z-index:200;
+  pointer-events:none;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* Offer chip */
+.offer-chip{
+  display:inline-flex;align-items:center;gap:5px;
+  background:linear-gradient(135deg,#10b981,#059669);
+  color:#fff;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:10px;font-weight:700;
+  letter-spacing:0.3px;
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <!-- Status bar -->
+  <div class="status-bar">
+    <span id="statusTime">9:41</span>
+    <span>📶 🔋</span>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ══════════════ HOME SCREEN ══════════════ -->
+  <div class="screen active" id="home">
+    <div class="home-header">
+      <div class="header-row">
+        <div class="app-logo">Pay<span>Flow</span></div>
+        <div class="header-icons">
+          <button class="icon-btn" onclick="showToast('🔍 Search')">🔍</button>
+          <button class="icon-btn" onclick="showToast('🔔 Notifications')">🔔</button>
+        </div>
+      </div>
+      <div class="balance-card">
+        <div class="balance-label">Total Balance</div>
+        <div class="balance-row">
+          <div>
+            <div class="balance-amount" id="homeBalance">₹48,250.00</div>
+            <div class="balance-sub">HDFC Bank •••• 4521</div>
+          </div>
+          <div class="upi-badge">raj@payflow</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="home-body">
+      <!-- Quick actions -->
+      <div class="section-title">Quick Pay</div>
+      <div class="quick-grid">
+        <div class="q-item" onclick="goToSend()">
+          <div class="q-icon" style="background:linear-gradient(135deg,#ede9fe,#ddd6fe);">💸</div>
+          <div class="q-label">Send Money</div>
+        </div>
+        <div class="q-item" onclick="showToast('📱 Mobile Recharge')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#dbeafe,#bfdbfe);">📱</div>
+          <div class="q-label">Recharge</div>
+        </div>
+        <div class="q-item" onclick="showToast('⚡ Electricity Bill')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">⚡</div>
+          <div class="q-label">Pay Bills</div>
+        </div>
+        <div class="q-item" onclick="showToast('🏦 Bank Transfer')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#d1fae5,#a7f3d0);">🏦</div>
+          <div class="q-label">Bank Transfer</div>
+        </div>
+        <div class="q-item" onclick="showToast('🛒 Shop & Pay')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#fce7f3,#fbcfe8);">🛒</div>
+          <div class="q-label">Shopping</div>
+        </div>
+        <div class="q-item" onclick="showToast('🎬 Movies & Events')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#ffe4e6,#fecdd3);">🎬</div>
+          <div class="q-label">Movies</div>
+        </div>
+        <div class="q-item" onclick="showToast('✈️ Travel Booking')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#e0f2fe,#bae6fd);">✈️</div>
+          <div class="q-label">Travel</div>
+        </div>
+        <div class="q-item" onclick="showToast('⋯ More Options')">
+          <div class="q-icon" style="background:linear-gradient(135deg,#f3f4f6,#e5e7eb);">⋯</div>
+          <div class="q-label">More</div>
+        </div>
+      </div>
+
+      <!-- Offers banner -->
+      <div class="section-title">Offers & Rewards</div>
+      <div class="banner-scroll">
+        <div class="banner" style="background:linear-gradient(135deg,#5f2eea,#3d1cb0);" onclick="showToast('🎉 Cashback Applied!')">
+          <div><span class="offer-chip">🎁 CASHBACK</span></div>
+          <div>
+            <div class="banner-title">Get ₹100 Back</div>
+            <div class="banner-sub">On first recharge today</div>
+          </div>
+        </div>
+        <div class="banner" style="background:linear-gradient(135deg,#f97316,#ea580c);" onclick="showToast('🍕 Order Food')">
+          <div><span class="offer-chip">🔥 HOT DEAL</span></div>
+          <div>
+            <div class="banner-title">50% Off Food</div>
+            <div class="banner-sub">Use code PAYFLOW50</div>
+          </div>
+        </div>
+        <div class="banner" style="background:linear-gradient(135deg,#06b6d4,#0891b2);" onclick="showToast('✈️ Book now!')">
+          <div><span class="offer-chip">✈️ TRAVEL</span></div>
+          <div>
+            <div class="banner-title">Flat ₹500 Off</div>
+            <div class="banner-sub">On flight bookings</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent contacts -->
+      <div class="section-title">Recent Contacts</div>
+      <div class="contacts-row">
+        <div class="contact-item" onclick="openPay('Priya S.','PS','#ec4899','priya@paytm')">
+          <div class="contact-avatar" style="background:linear-gradient(135deg,#ec4899,#db2777);">PS</div>
+          <div class="contact-name">Priya</div>
+        </div>
+        <div class="contact-item" onclick="openPay('Rahul M.','RM','#f97316','rahul@gpay')">
+          <div class="contact-avatar" style="background:linear-gradient(135deg,#f97316,#ea580c);">RM</div>
+          <div class="contact-name">Rahul</div>
+        </div>
+        <div class="contact-item" onclick="openPay('Aisha K.','AK','#06b6d4','aisha@okaxis')">
+          <div class="contact-avatar" style="background:linear-gradient(135deg,#06b6d4,#0891b2);">AK</div>
+          <div class="contact-name">Aisha</div>
+        </div>
+        <div class="contact-item" onclick="openPay('Dev P.','DP','#10b981','dev@ybl')">
+          <div class="contact-avatar" style="background:linear-gradient(135deg,#10b981,#059669);">DP</div>
+          <div class="contact-name">Dev</div>
+        </div>
+        <div class="contact-item" onclick="openPay('Neha R.','NR','#8b5cf6','neha@icici')">
+          <div class="contact-avatar" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);">NR</div>
+          <div class="contact-name">Neha</div>
+        </div>
+        <div class="contact-item" onclick="showToast('➕ Add Contact')">
+          <div class="contact-avatar" style="background:#f3f4f6;color:#9ca3af;font-size:20px;">+</div>
+          <div class="contact-name">Add</div>
+        </div>
+      </div>
+
+      <!-- Recent transactions -->
+      <div class="section-title">Recent Transactions</div>
+      <div class="tx-card">
+        <div class="tx-item" onclick="showToast('Priya Sharma • ₹500')">
+          <div class="tx-avatar" style="background:#fce7f3;">💸</div>
+          <div class="tx-info">
+            <div class="tx-name">Priya Sharma</div>
+            <div class="tx-desc">Today, 10:32 AM · UPI</div>
+          </div>
+          <div class="tx-amount dr">-₹500</div>
+        </div>
+        <div class="tx-item" onclick="showToast('Salary Credit • ₹55,000')">
+          <div class="tx-avatar" style="background:#d1fae5;">🏦</div>
+          <div class="tx-info">
+            <div class="tx-name">Salary Credit</div>
+            <div class="tx-desc">Yesterday · Bank Transfer</div>
+          </div>
+          <div class="tx-amount cr">+₹55,000</div>
+        </div>
+        <div class="tx-item" onclick="showToast('Zomato • ₹340')">
+          <div class="tx-avatar" style="background:#ffe4e6;">🍕</div>
+          <div class="tx-info">
+            <div class="tx-name">Zomato</div>
+            <div class="tx-desc">Yesterday · Food Order</div>
+          </div>
+          <div class="tx-amount dr">-₹340</div>
+        </div>
+        <div class="tx-item" onclick="showToast('Rahul M. • ₹1,200')">
+          <div class="tx-avatar" style="background:#fef3c7;">💸</div>
+          <div class="tx-info">
+            <div class="tx-name">Rahul Mehta</div>
+            <div class="tx-desc">28 Mar · UPI</div>
+          </div>
+          <div class="tx-amount cr">+₹1,200</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom nav -->
+    <div class="bottom-nav">
+      <button class="nav-item active" onclick="switchScreen('home')">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">HOME</span>
+      </button>
+      <button class="nav-item" onclick="switchScreen('send');goToSend()">
+        <span class="nav-icon">💸</span>
+        <span class="nav-label">SEND</span>
+      </button>
+      <button class="nav-item" onclick="switchScreen('history')">
+        <span class="nav-icon">📋</span>
+        <span class="nav-label">HISTORY</span>
+      </button>
+      <button class="nav-item" onclick="switchScreen('profile')">
+        <span class="nav-icon">👤</span>
+        <span class="nav-label">PROFILE</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SEND SCREEN ══════════════ -->
+  <div class="screen" id="send">
+    <div class="screen-header">
+      <div class="back-row">
+        <button class="back-btn" onclick="switchScreen('home')">←</button>
+        <span class="screen-title-text">Send Money</span>
+      </div>
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" placeholder="Name, UPI ID or phone number…" id="searchInput" oninput="filterContacts(this.value)"/>
+      </div>
+    </div>
+
+    <div class="send-body">
+      <div class="send-options">
+        <div class="send-opt" onclick="showToast('📷 Scan QR Code')">
+          <div class="send-opt-icon" style="background:#ede9fe;">📷</div>
+          <div><div class="send-opt-label">Scan QR</div><div class="send-opt-sub">Pay instantly</div></div>
+        </div>
+        <div class="send-opt" onclick="showToast('📱 Enter UPI ID')">
+          <div class="send-opt-icon" style="background:#dbeafe;">📱</div>
+          <div><div class="send-opt-label">UPI ID</div><div class="send-opt-sub">Type address</div></div>
+        </div>
+        <div class="send-opt" onclick="showToast('📞 Pay by Phone')">
+          <div class="send-opt-icon" style="background:#d1fae5;">📞</div>
+          <div><div class="send-opt-label">Mobile No.</div><div class="send-opt-sub">From contacts</div></div>
+        </div>
+        <div class="send-opt" onclick="showToast('🏦 Bank Account')">
+          <div class="send-opt-icon" style="background:#fef3c7;">🏦</div>
+          <div><div class="send-opt-label">Bank A/C</div><div class="send-opt-sub">IFSC + Acc no</div></div>
+        </div>
+      </div>
+
+      <div class="section-title">All Contacts</div>
+      <div class="contacts-list" id="contactsList"></div>
+    </div>
+
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">HOME</span></button>
+      <button class="nav-item active" onclick="goToSend()"><span class="nav-icon">💸</span><span class="nav-label">SEND</span></button>
+      <button class="nav-item" onclick="switchScreen('history')"><span class="nav-icon">📋</span><span class="nav-label">HISTORY</span></button>
+      <button class="nav-item" onclick="switchScreen('profile')"><span class="nav-icon">👤</span><span class="nav-label">PROFILE</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════ PAY SCREEN ══════════════ -->
+  <div class="screen" id="pay">
+    <div class="screen-header">
+      <div class="back-row">
+        <button class="back-btn" onclick="switchScreen('send')">←</button>
+        <span class="screen-title-text">Pay</span>
+      </div>
+    </div>
+    <div class="pay-body">
+      <div class="pay-recipient">
+        <div class="pay-avatar" id="payAvatar" style="background:linear-gradient(135deg,#ec4899,#db2777);">PS</div>
+        <div class="pay-name" id="payName">Priya Sharma</div>
+        <div class="pay-upi" id="payUpi">priya@paytm</div>
+      </div>
+
+      <div class="amount-section">
+        <div class="amount-label">Enter Amount</div>
+        <div class="amount-input-wrap">
+          <span class="rupee-sign">₹</span>
+          <input class="amount-input" type="number" id="amountInput" placeholder="0" min="1"/>
+        </div>
+        <div class="quick-amounts">
+          <div class="quick-amt" onclick="setAmt(100)">₹100</div>
+          <div class="quick-amt" onclick="setAmt(200)">₹200</div>
+          <div class="quick-amt" onclick="setAmt(500)">₹500</div>
+          <div class="quick-amt" onclick="setAmt(1000)">₹1K</div>
+          <div class="quick-amt" onclick="setAmt(2000)">₹2K</div>
+        </div>
+      </div>
+
+      <div class="note-input">
+        <span>📝</span>
+        <input type="text" id="noteInput" placeholder="Add a note (optional)…"/>
+      </div>
+
+      <button class="pay-btn" onclick="initiatePayment()">
+        <span>🔒</span> Proceed to Pay
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════ SUCCESS SCREEN ══════════════ -->
+  <div class="screen" id="success">
+    <div class="screen-header">
+      <div class="back-row">
+        <button class="back-btn" onclick="switchScreen('home')">←</button>
+        <span class="screen-title-text">Payment Status</span>
+      </div>
+    </div>
+    <div class="success-body">
+      <div class="success-ring">✓</div>
+      <div class="success-title">Payment Successful!</div>
+      <div class="success-amount" id="successAmt">₹500</div>
+      <div class="success-to">Paid to <strong id="successName">Priya Sharma</strong></div>
+      <div class="success-txn" id="successTxn">TXN: PAY2024032800001</div>
+      <div class="success-actions">
+        <button class="success-btn secondary" onclick="showToast('📥 Receipt Downloaded')">Receipt</button>
+        <button class="success-btn primary" onclick="switchScreen('home')">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ HISTORY SCREEN ══════════════ -->
+  <div class="screen" id="history">
+    <div class="screen-header">
+      <div class="back-row">
+        <button class="back-btn" onclick="switchScreen('home')">←</button>
+        <span class="screen-title-text">Transactions</span>
+      </div>
+    </div>
+    <div class="history-body">
+      <div class="history-filter">
+        <div class="filter-pill active" onclick="filterTx(this,'all')">All</div>
+        <div class="filter-pill" onclick="filterTx(this,'sent')">Sent</div>
+        <div class="filter-pill" onclick="filterTx(this,'received')">Received</div>
+        <div class="filter-pill" onclick="filterTx(this,'bills')">Bills</div>
+        <div class="filter-pill" onclick="filterTx(this,'recharge')">Recharge</div>
+      </div>
+      <div id="historyList"></div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">HOME</span></button>
+      <button class="nav-item" onclick="goToSend()"><span class="nav-icon">💸</span><span class="nav-label">SEND</span></button>
+      <button class="nav-item active"><span class="nav-icon">📋</span><span class="nav-label">HISTORY</span></button>
+      <button class="nav-item" onclick="switchScreen('profile')"><span class="nav-icon">👤</span><span class="nav-label">PROFILE</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════ PROFILE SCREEN ══════════════ -->
+  <div class="screen" id="profile">
+    <div class="profile-header">
+      <div class="profile-avatar">RK</div>
+      <div class="profile-name">Raj Kumar</div>
+      <div class="profile-phone">+91 98765 43210</div>
+      <div class="profile-upi">raj@payflow</div>
+    </div>
+    <div class="profile-body">
+      <div class="section-title">Account</div>
+      <div class="profile-section">
+        <div class="profile-row" onclick="showToast('🏦 Linked Banks')">
+          <div class="profile-row-icon" style="background:#ede9fe;">🏦</div>
+          <div class="profile-row-info"><div class="profile-row-label">Linked Bank Accounts</div><div class="profile-row-sub">HDFC •••• 4521</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+        <div class="profile-row" onclick="showToast('💳 Saved Cards')">
+          <div class="profile-row-icon" style="background:#dbeafe;">💳</div>
+          <div class="profile-row-info"><div class="profile-row-label">Saved Cards</div><div class="profile-row-sub">2 cards saved</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+        <div class="profile-row" onclick="showToast('📋 UPI ID Copied!')">
+          <div class="profile-row-icon" style="background:#d1fae5;">📋</div>
+          <div class="profile-row-info"><div class="profile-row-label">UPI IDs</div><div class="profile-row-sub">raj@payflow</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="section-title">Settings</div>
+      <div class="profile-section">
+        <div class="profile-row" onclick="showToast('🔔 Notifications')">
+          <div class="profile-row-icon" style="background:#fef3c7;">🔔</div>
+          <div class="profile-row-info"><div class="profile-row-label">Notifications</div><div class="profile-row-sub">All alerts enabled</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+        <div class="profile-row" onclick="showToast('🔒 Security Settings')">
+          <div class="profile-row-icon" style="background:#ffe4e6;">🔒</div>
+          <div class="profile-row-info"><div class="profile-row-label">Security & Privacy</div><div class="profile-row-sub">Biometrics on</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+        <div class="profile-row" onclick="showToast('🌐 Language')">
+          <div class="profile-row-icon" style="background:#e0f2fe;">🌐</div>
+          <div class="profile-row-info"><div class="profile-row-label">Language</div><div class="profile-row-sub">English</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+      </div>
+
+      <div class="section-title">Support</div>
+      <div class="profile-section">
+        <div class="profile-row" onclick="showToast('🎧 Help Center')">
+          <div class="profile-row-icon" style="background:#f3e8ff;">🎧</div>
+          <div class="profile-row-info"><div class="profile-row-label">Help & Support</div><div class="profile-row-sub">24/7 assistance</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+        <div class="profile-row" onclick="showToast('⭐ Thanks for rating!')">
+          <div class="profile-row-icon" style="background:#fef9c3;">⭐</div>
+          <div class="profile-row-info"><div class="profile-row-label">Rate PayFlow</div><div class="profile-row-sub">Love the app? Let us know!</div></div>
+          <span class="profile-row-arrow">›</span>
+        </div>
+      </div>
+    </div>
+    <div class="bottom-nav">
+      <button class="nav-item" onclick="switchScreen('home')"><span class="nav-icon">🏠</span><span class="nav-label">HOME</span></button>
+      <button class="nav-item" onclick="goToSend()"><span class="nav-icon">💸</span><span class="nav-label">SEND</span></button>
+      <button class="nav-item" onclick="switchScreen('history')"><span class="nav-icon">📋</span><span class="nav-label">HISTORY</span></button>
+      <button class="nav-item active"><span class="nav-icon">👤</span><span class="nav-label">PROFILE</span></button>
+    </div>
+  </div>
+
+  <!-- ══════════════ PIN MODAL ══════════════ -->
+  <div class="modal-overlay" id="pinModal">
+    <div class="modal">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Enter UPI PIN</div>
+      <div class="modal-sub" id="pinModalSub">Authorise payment of <strong id="pinAmt">₹500</strong></div>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="pd0"></div>
+        <div class="pin-dot" id="pd1"></div>
+        <div class="pin-dot" id="pd2"></div>
+        <div class="pin-dot" id="pd3"></div>
+        <div class="pin-dot" id="pd4"></div>
+        <div class="pin-dot" id="pd5"></div>
+      </div>
+      <div class="pinpad">
+        <button class="pin-key" onclick="pinKey('1')">1</button>
+        <button class="pin-key" onclick="pinKey('2')">2</button>
+        <button class="pin-key" onclick="pinKey('3')">3</button>
+        <button class="pin-key" onclick="pinKey('4')">4</button>
+        <button class="pin-key" onclick="pinKey('5')">5</button>
+        <button class="pin-key" onclick="pinKey('6')">6</button>
+        <button class="pin-key" onclick="pinKey('7')">7</button>
+        <button class="pin-key" onclick="pinKey('8')">8</button>
+        <button class="pin-key" onclick="pinKey('9')">9</button>
+        <button class="pin-key del" onclick="pinKey('del')">⌫</button>
+        <button class="pin-key" onclick="pinKey('0')">0</button>
+        <button class="pin-key ok" onclick="pinKey('ok')">PAY</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────
+let balance = 48250;
+let currentPayee = {};
+let pinBuffer = '';
+
+const contacts = [
+  { name:'Priya Sharma',  initials:'PS', color:'linear-gradient(135deg,#ec4899,#db2777)', upi:'priya@paytm',  cat:'sent' },
+  { name:'Rahul Mehta',   initials:'RM', color:'linear-gradient(135deg,#f97316,#ea580c)', upi:'rahul@gpay',   cat:'received' },
+  { name:'Aisha Khan',    initials:'AK', color:'linear-gradient(135deg,#06b6d4,#0891b2)', upi:'aisha@okaxis', cat:'sent' },
+  { name:'Dev Patel',     initials:'DP', color:'linear-gradient(135deg,#10b981,#059669)', upi:'dev@ybl',      cat:'received' },
+  { name:'Neha Rao',      initials:'NR', color:'linear-gradient(135deg,#8b5cf6,#7c3aed)', upi:'neha@icici',   cat:'sent' },
+  { name:'Amit Singh',    initials:'AS', color:'linear-gradient(135deg,#f59e0b,#d97706)', upi:'amit@upi',     cat:'sent' },
+  { name:'Pooja Verma',   initials:'PV', color:'linear-gradient(135deg,#ef4444,#dc2626)', upi:'pooja@kotak',  cat:'received' },
+  { name:'Kiran Joshi',   initials:'KJ', color:'linear-gradient(135deg,#6366f1,#4f46e5)', upi:'kiran@sbi',    cat:'bills' },
+];
+
+const allTx = [
+  { name:'Priya Sharma',  emoji:'💸', bg:'#fce7f3', amt:-500,    date:'Today, 10:32 AM',  cat:'sent',     desc:'UPI Transfer' },
+  { name:'Salary Credit', emoji:'🏦', bg:'#d1fae5', amt:55000,   date:'Yesterday',        cat:'received', desc:'Bank Transfer' },
+  { name:'Zomato',        emoji:'🍕', bg:'#ffe4e6', amt:-340,    date:'Yesterday',        cat:'bills',    desc:'Food Order' },
+  { name:'Rahul Mehta',   emoji:'💸', bg:'#fef3c7', amt:1200,    date:'28 Mar',           cat:'received', desc:'Split Payment' },
+  { name:'Airtel Recharge',emoji:'📱',bg:'#dbeafe', amt:-299,    date:'27 Mar',           cat:'recharge', desc:'Mobile Recharge' },
+  { name:'Neha Rao',      emoji:'💸', bg:'#ede9fe', amt:-2000,   date:'26 Mar',           cat:'sent',     desc:'UPI Transfer' },
+  { name:'Amazon Pay',    emoji:'🛒', bg:'#fef9c3', amt:-1499,   date:'25 Mar',           cat:'bills',    desc:'Online Shopping' },
+  { name:'Dev Patel',     emoji:'💸', bg:'#d1fae5', amt:800,     date:'24 Mar',           cat:'received', desc:'Returned money' },
+  { name:'BESCOM Bill',   emoji:'⚡', bg:'#fef3c7', amt:-1200,   date:'22 Mar',           cat:'bills',    desc:'Electricity Bill' },
+  { name:'Cashback',      emoji:'🎁', bg:'#d1fae5', amt:100,     date:'20 Mar',           cat:'received', desc:'Reward Credited' },
+];
+
+// ── Clock ─────────────────────────────────────────
+function updateClock(){
+  const n=new Date();
+  document.getElementById('statusTime').textContent=
+    n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+setInterval(updateClock,10000); updateClock();
+
+// ── Screen switching ──────────────────────────────
+function switchScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='history') renderHistory('all');
+  if(id==='send') renderContacts('');
+}
+
+// ── Toast ─────────────────────────────────────────
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+// ── Send / Contacts ───────────────────────────────
+function goToSend(){switchScreen('send');}
+
+function renderContacts(filter){
+  const list=document.getElementById('contactsList');
+  const f=filter.toLowerCase();
+  const filtered=contacts.filter(c=>
+    c.name.toLowerCase().includes(f)||c.upi.toLowerCase().includes(f));
+  list.innerHTML=filtered.map(c=>`
+    <div class="contact-row" onclick="openPay('${c.name}','${c.initials}','','${c.upi}')">
+      <div class="contact-avatar" style="background:${c.color};width:42px;height:42px;font-size:14px;">${c.initials}</div>
+      <div class="contact-row-info">
+        <div class="contact-row-name">${c.name}</div>
+        <div class="contact-row-upi">${c.upi}</div>
+      </div>
+      <span class="contact-row-arrow">›</span>
+    </div>`).join('');
+}
+
+function filterContacts(val){renderContacts(val);}
+
+// ── Pay screen ────────────────────────────────────
+function openPay(name,initials,color,upi){
+  currentPayee={name,initials,color,upi};
+  const colors=['linear-gradient(135deg,#ec4899,#db2777)','linear-gradient(135deg,#f97316,#ea580c)',
+    'linear-gradient(135deg,#06b6d4,#0891b2)','linear-gradient(135deg,#10b981,#059669)',
+    'linear-gradient(135deg,#8b5cf6,#7c3aed)','linear-gradient(135deg,#5f2eea,#3d1cb0)'];
+  const bg = color || colors[Math.abs(name.charCodeAt(0)-65)%colors.length];
+  document.getElementById('payAvatar').style.background=bg;
+  document.getElementById('payAvatar').textContent=initials;
+  document.getElementById('payName').textContent=name;
+  document.getElementById('payUpi').textContent=upi;
+  document.getElementById('amountInput').value='';
+  document.getElementById('noteInput').value='';
+  switchScreen('pay');
+}
+
+function setAmt(n){document.getElementById('amountInput').value=n;}
+
+// ── Payment flow ──────────────────────────────────
+function initiatePayment(){
+  const amt=parseInt(document.getElementById('amountInput').value)||0;
+  if(amt<=0){showToast('⚠️ Enter a valid amount');return;}
+  if(amt>balance){showToast('❌ Insufficient balance');return;}
+  document.getElementById('pinAmt').textContent='₹'+amt.toLocaleString('en-IN');
+  pinBuffer='';
+  updatePinDots();
+  document.getElementById('pinModal').classList.add('show');
+}
+
+function pinKey(k){
+  if(k==='del'){pinBuffer=pinBuffer.slice(0,-1);}
+  else if(k==='ok'){
+    if(pinBuffer.length<4){showToast('⚠️ Enter 6-digit PIN');return;}
+    completePayment();return;
+  } else {
+    if(pinBuffer.length<6) pinBuffer+=k;
+    if(pinBuffer.length===6) setTimeout(completePayment,200);
+  }
+  updatePinDots();
+}
+
+function updatePinDots(){
+  for(let i=0;i<6;i++){
+    const d=document.getElementById('pd'+i);
+    d.classList.toggle('filled',i<pinBuffer.length);
+  }
+}
+
+function completePayment(){
+  document.getElementById('pinModal').classList.remove('show');
+  const amt=parseInt(document.getElementById('amountInput').value)||0;
+  balance-=amt;
+  // Update balance display
+  document.getElementById('homeBalance').textContent='₹'+balance.toLocaleString('en-IN',{minimumFractionDigits:2});
+  // Add to transactions
+  allTx.unshift({
+    name:currentPayee.name, emoji:'💸', bg:'#ede9fe',
+    amt:-amt, date:'Just now', cat:'sent', desc:'UPI Transfer'
+  });
+  // Show success
+  document.getElementById('successAmt').textContent='₹'+amt.toLocaleString('en-IN');
+  document.getElementById('successName').textContent=currentPayee.name;
+  document.getElementById('successTxn').textContent='TXN: PAY'+Date.now().toString().slice(-12);
+  pinBuffer='';
+  switchScreen('success');
+}
+
+// ── History ───────────────────────────────────────
+function renderHistory(cat){
+  const list=document.getElementById('historyList');
+  const filtered=cat==='all'?allTx:allTx.filter(t=>t.cat===cat);
+  // group by date
+  const groups={};
+  filtered.forEach(t=>{
+    (groups[t.date]=groups[t.date]||[]).push(t);
+  });
+  list.innerHTML=Object.entries(groups).map(([date,txs])=>`
+    <div class="history-group">
+      <div class="history-date">${date}</div>
+      <div class="tx-card">
+        ${txs.map(t=>`
+          <div class="tx-item" onclick="showToast('${t.name} • ${t.amt>0?'+':''}₹${Math.abs(t.amt).toLocaleString('en-IN')}')">
+            <div class="tx-avatar" style="background:${t.bg}">${t.emoji}</div>
+            <div class="tx-info">
+              <div class="tx-name">${t.name}</div>
+              <div class="tx-desc">${t.desc}</div>
+            </div>
+            <div class="tx-amount ${t.amt>0?'cr':'dr'}">${t.amt>0?'+':''  }₹${Math.abs(t.amt).toLocaleString('en-IN')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function filterTx(el,cat){
+  document.querySelectorAll('.filter-pill').forEach(p=>p.classList.remove('active'));
+  el.classList.add('active');
+  renderHistory(cat);
+}
+
+// ── Init ──────────────────────────────────────────
+renderContacts('');
+renderHistory('all');
+</script>
+</body>
+</html>

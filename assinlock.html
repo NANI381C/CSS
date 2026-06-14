@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultX — Secure Entry</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c10;
+    --panel: #0f1318;
+    --border: #1e2530;
+    --accent: #00e5ff;
+    --accent2: #ff3d71;
+    --gold: #f5c842;
+    --text: #c8d6e5;
+    --muted: #3d4f63;
+    --success: #00e676;
+    --danger: #ff3d71;
+    --glow: 0 0 20px rgba(0,229,255,0.25);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* Animated grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    z-index: 0;
+    animation: gridMove 20s linear infinite;
+  }
+
+  @keyframes gridMove {
+    0% { background-position: 0 0; }
+    100% { background-position: 40px 40px; }
+  }
+
+  /* Scanline overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .container {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    width: min(780px, 96vw);
+  }
+
+  /* ── Door Panel ── */
+  .door-side {
+    width: 260px;
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .door-frame {
+    width: 180px;
+    height: 300px;
+    border: 3px solid var(--muted);
+    border-radius: 6px 6px 0 0;
+    position: relative;
+    background: #080a0d;
+    overflow: visible;
+    transition: border-color 0.4s;
+  }
+
+  .door-frame.unlocked-frame { border-color: var(--success); }
+  .door-frame.lockout-frame  { border-color: var(--danger); }
+
+  /* Door panel that swings */
+  .door-panel {
+    position: absolute;
+    inset: 4px;
+    background: linear-gradient(160deg, #161c24 0%, #0d1117 100%);
+    border: 1px solid #1e2a38;
+    border-radius: 3px 3px 0 0;
+    transform-origin: left center;
+    transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .door-panel.open {
+    transform: perspective(600px) rotateY(-70deg);
+  }
+
+  /* Door rivets */
+  .rivet {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #1e2a38;
+    border: 1px solid #2a3848;
+  }
+  .rivet.tl { top: 12px; left: 12px; }
+  .rivet.tr { top: 12px; right: 12px; }
+  .rivet.bl { bottom: 12px; left: 12px; }
+  .rivet.br { bottom: 12px; right: 12px; }
+
+  /* Door panel logo */
+  .door-logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    user-select: none;
+  }
+
+  /* Door knob */
+  .knob-wrap {
+    position: absolute;
+    right: -16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .knob {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--muted);
+    border: 2px solid #2a3848;
+    transition: background 0.4s, box-shadow 0.4s;
+  }
+
+  .knob.open   { background: var(--success); box-shadow: 0 0 12px var(--success); }
+  .knob.danger { background: var(--danger);  box-shadow: 0 0 12px var(--danger); }
+
+  /* Door base */
+  .door-base {
+    width: 200px;
+    height: 12px;
+    background: #1a2330;
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+  }
+
+  /* Status light strip */
+  .status-strip {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-light {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: background 0.4s, box-shadow 0.4s;
+    animation: pulse 2s infinite;
+  }
+
+  .status-light.locked   { background: var(--accent2); box-shadow: 0 0 8px var(--accent2); }
+  .status-light.unlocked { background: var(--success);  box-shadow: 0 0 8px var(--success); animation: none; }
+  .status-light.lockout  { background: var(--danger);   box-shadow: 0 0 8px var(--danger); }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .status-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    transition: color 0.4s;
+  }
+
+  /* ── Control Panel ── */
+  .control-panel {
+    flex: 1;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    padding: 28px 28px 24px;
+    position: relative;
+    transition: border-color 0.4s;
+  }
+
+  .control-panel.success-panel { border-left-color: var(--success); }
+  .control-panel.danger-panel  { border-left-color: var(--danger); }
+
+  /* Corner decorations */
+  .corner {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-color: var(--accent);
+    border-style: solid;
+    transition: border-color 0.4s;
+  }
+  .corner.tl { top: 8px; left: 8px; border-width: 2px 0 0 2px; }
+  .corner.br { bottom: 8px; right: 8px; border-width: 0 2px 2px 0; }
+
+  .panel-header {
+    margin-bottom: 20px;
+  }
+
+  .panel-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .panel-sub {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: var(--text);
+  }
+
+  /* PIN display */
+  .pin-display {
+    background: #070a0d;
+    border: 1px solid var(--border);
+    border-bottom: 2px solid var(--accent);
+    padding: 14px 16px;
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 16px;
+    transition: border-color 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .pin-display::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    transition: background 0.3s;
+    animation: scan 2s linear infinite;
+    opacity: 0.6;
+  }
+
+  @keyframes scan {
+    0% { transform: scaleX(0); transform-origin: left; }
+    50% { transform: scaleX(1); transform-origin: left; }
+    50.01% { transform: scaleX(1); transform-origin: right; }
+    100% { transform: scaleX(0); transform-origin: right; }
+  }
+
+  .pin-display.error-display { border-bottom-color: var(--danger); }
+  .pin-display.error-display::after { background: var(--danger); }
+  .pin-display.ok-display { border-bottom-color: var(--success); }
+  .pin-display.ok-display::after { background: var(--success); }
+
+  .pin-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid var(--muted);
+    transition: background 0.2s, border-color 0.2s;
+  }
+
+  .pin-dot.filled {
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+
+  .pin-dot.error {
+    background: var(--danger);
+    border-color: var(--danger);
+    box-shadow: 0 0 8px var(--danger);
+  }
+
+  .pin-dot.success {
+    background: var(--success);
+    border-color: var(--success);
+    box-shadow: 0 0 8px var(--success);
+  }
+
+  /* Attempts indicator */
+  .attempts-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .attempt-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    text-transform: uppercase;
+    flex-shrink: 0;
+  }
+
+  .attempt-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .attempt-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--accent2);
+    border-radius: 2px;
+    transition: width 0.4s, background 0.4s;
+  }
+
+  .attempt-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent2);
+    min-width: 24px;
+    text-align: right;
+  }
+
+  /* Keypad */
+  .keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .key {
+    background: #0d1117;
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    padding: 14px 8px;
+    cursor: pointer;
+    border-radius: 3px;
+    letter-spacing: 1px;
+    transition: background 0.15s, border-color 0.15s, transform 0.1s, color 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .key::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--accent);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .key:hover:not(:disabled) {
+    background: #151d28;
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .key:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  .key:active:not(:disabled)::after {
+    opacity: 0.08;
+  }
+
+  .key:disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+  }
+
+  .key.del-key {
+    font-size: 13px;
+    letter-spacing: 2px;
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  .key.enter-key {
+    background: rgba(0,229,255,0.06);
+    border-color: var(--accent);
+    color: var(--accent);
+    font-size: 13px;
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+  }
+
+  .key.enter-key:hover:not(:disabled) {
+    background: rgba(0,229,255,0.14);
+  }
+
+  /* Message */
+  .msg-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    min-height: 18px;
+    text-align: center;
+    color: var(--muted);
+    margin-bottom: 10px;
+    transition: color 0.3s;
+  }
+
+  .msg-line.err { color: var(--danger); }
+  .msg-line.ok  { color: var(--success); }
+
+  /* Lockout state */
+  .lockout-display {
+    background: rgba(255,61,113,0.06);
+    border: 1px solid rgba(255,61,113,0.3);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 12px;
+    border-radius: 3px;
+  }
+
+  .lockout-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--danger);
+    margin-bottom: 6px;
+    animation: blink 1s step-end infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .lockout-sub {
+    font-size: 13px;
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+
+  /* Unlock state */
+  .unlock-display {
+    background: rgba(0,230,118,0.06);
+    border: 1px solid rgba(0,230,118,0.3);
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 12px;
+    border-radius: 3px;
+  }
+
+  .unlock-title {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    color: var(--success);
+    margin-bottom: 6px;
+  }
+
+  .unlock-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0,230,118,0.08);
+    border: 1px solid var(--success);
+    color: var(--success);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-transform: uppercase;
+    transition: background 0.2s;
+    margin-bottom: 8px;
+  }
+
+  .unlock-btn:hover { background: rgba(0,230,118,0.16); }
+
+  /* Reset */
+  .reset-btn {
+    width: 100%;
+    padding: 9px;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 3px;
+    cursor: pointer;
+    border-radius: 3px;
+    text-transform: uppercase;
+    transition: border-color 0.2s, color 0.2s;
+  }
+
+  .reset-btn:hover { border-color: var(--muted); color: var(--text); }
+
+  /* Hint */
+  .hint-line {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 8px;
+    letter-spacing: 1px;
+    opacity: 0.5;
+  }
+
+  /* Shake animation */
+  @keyframes shake {
+    0%,100%{transform:translateX(0)}
+    15%{transform:translateX(-7px)}
+    35%{transform:translateX(7px)}
+    55%{transform:translateX(-5px)}
+    75%{transform:translateX(5px)}
+  }
+
+  .shake { animation: shake 0.45s ease; }
+
+  /* Top bar */
+  .top-bar {
+    position: relative;
+    z-index: 2;
+    width: min(780px, 96vw);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 0 16px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  .logo {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 18px;
+    letter-spacing: 4px;
+    color: var(--accent);
+  }
+
+  .logo span { color: var(--text); opacity: 0.5; }
+
+  .sys-info {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .sys-info .live { color: var(--success); }
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <div class="logo">VAULT<span>X</span></div>
+  <div class="sys-info">
+    SECURE ACCESS TERMINAL<br>
+    STATUS: <span class="live" id="sysStatus">ONLINE</span>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Door visual -->
+  <div class="door-side">
+    <div class="door-frame" id="doorFrame">
+      <div class="door-panel" id="doorPanel">
+        <div class="rivet tl"></div>
+        <div class="rivet tr"></div>
+        <div class="rivet bl"></div>
+        <div class="rivet br"></div>
+        <div class="door-logo">VAULTX</div>
+      </div>
+      <div class="knob-wrap">
+        <div class="knob" id="knob"></div>
+      </div>
+    </div>
+    <div class="door-base"></div>
+    <div class="status-strip">
+      <div class="status-light locked" id="statusLight"></div>
+      <div class="status-label" id="statusLabel">LOCKED</div>
+    </div>
+  </div>
+
+  <!-- Control panel -->
+  <div class="control-panel" id="controlPanel">
+    <div class="corner tl"></div>
+    <div class="corner br"></div>
+
+    <div class="panel-header">
+      <div class="panel-title">// access control</div>
+      <div class="panel-sub">Enter PIN Code</div>
+    </div>
+
+    <!-- PIN dots -->
+    <div class="pin-display" id="pinDisplay">
+      <div class="pin-dot" id="d0"></div>
+      <div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div>
+      <div class="pin-dot" id="d3"></div>
+    </div>
+
+    <!-- Attempts bar -->
+    <div class="attempts-row">
+      <div class="attempt-label">ATTEMPTS</div>
+      <div class="attempt-bar">
+        <div class="attempt-fill" id="attemptFill"></div>
+      </div>
+      <div class="attempt-count" id="attemptCount">0/3</div>
+    </div>
+
+    <!-- Keypad -->
+    <div id="keypadArea">
+      <div class="keypad" id="keypad">
+        <button class="key" onclick="press('1')">1</button>
+        <button class="key" onclick="press('2')">2</button>
+        <button class="key" onclick="press('3')">3</button>
+        <button class="key" onclick="press('4')">4</button>
+        <button class="key" onclick="press('5')">5</button>
+        <button class="key" onclick="press('6')">6</button>
+        <button class="key" onclick="press('7')">7</button>
+        <button class="key" onclick="press('8')">8</button>
+        <button class="key" onclick="press('9')">9</button>
+        <button class="key del-key" onclick="del()">DEL</button>
+        <button class="key" onclick="press('0')">0</button>
+        <button class="key enter-key" onclick="submit()">ENTER</button>
+      </div>
+      <div class="msg-line" id="msg"></div>
+    </div>
+
+    <!-- Lockout state -->
+    <div id="lockoutArea" style="display:none">
+      <div class="lockout-display">
+        <div class="lockout-title">!! LOCKOUT !!</div>
+        <div class="lockout-sub">Max attempts reached. Reset to continue.</div>
+      </div>
+    </div>
+
+    <!-- Unlocked state -->
+    <div id="unlockedArea" style="display:none">
+      <div class="unlock-display">
+        <div class="unlock-title">ACCESS GRANTED</div>
+        <div style="margin-top:10px;font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:2px;color:#3d4f63;">AUTO-LOCK IN</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:36px;font-weight:700;color:var(--success);margin:4px 0;transition:color 0.3s;" id="timerDisplay">60</div>
+        <div style="margin:0 auto;width:100%;background:#0a0c10;border-radius:2px;height:5px;overflow:hidden;">
+          <div id="timerBar" style="height:100%;width:100%;background:var(--success);transition:width 1s linear,background 0.3s;border-radius:2px;"></div>
+        </div>
+      </div>
+      <button class="unlock-btn" onclick="lockDoor()">[ LOCK DOOR NOW ]</button>
+    </div>
+
+    <button class="reset-btn" onclick="resetAll()">[ RESET SYSTEM ]</button>
+    <div class="hint-line">hint: pin is 1234</div>
+  </div>
+
+</div>
+
+<script>
+  const CORRECT = '1234';
+  const AUTO_LOCK_SEC = 60;
+  let state = 'locked';
+  let input = '';
+  let attempts = 0;
+  let timerInterval = null;
+  let timerLeft = AUTO_LOCK_SEC;
+
+  function startAutoLockTimer() {
+    clearAutoLockTimer();
+    timerLeft = AUTO_LOCK_SEC;
+    updateTimerUI();
+    timerInterval = setInterval(() => {
+      timerLeft--;
+      updateTimerUI();
+      if (timerLeft <= 0) {
+        clearAutoLockTimer();
+        lockDoor();
+        setMsg('AUTO-LOCKED AFTER 60s', 'err');
+        setTimeout(() => setMsg('', ''), 2500);
+      }
+    }, 1000);
+  }
+
+  function clearAutoLockTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  }
+
+  function updateTimerUI() {
+    const disp = document.getElementById('timerDisplay');
+    const bar  = document.getElementById('timerBar');
+    if (!disp || !bar) return;
+    disp.textContent = timerLeft;
+    const pct = (timerLeft / AUTO_LOCK_SEC) * 100;
+    bar.style.width = pct + '%';
+    if (timerLeft <= 10) {
+      disp.style.color = 'var(--danger)';
+      bar.style.background = 'var(--danger)';
+    } else if (timerLeft <= 25) {
+      disp.style.color = 'var(--gold)';
+      bar.style.background = 'var(--gold)';
+    } else {
+      disp.style.color = 'var(--success)';
+      bar.style.background = 'var(--success)';
+    }
+  }
+
+  function press(d) {
+    if (state !== 'locked') return;
+    if (input.length >= 4) return;
+    input += d;
+    updateDots();
+    setMsg('', '');
+    if (input.length === 4) submit();
+  }
+
+  function del() {
+    if (state !== 'locked') return;
+    input = input.slice(0, -1);
+    updateDots();
+  }
+
+  function updateDots() {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      if (i < input.length) {
+        dot.classList.add('filled');
+        dot.classList.remove('error', 'success');
+      } else {
+        dot.classList.remove('filled', 'error', 'success');
+      }
+    }
+  }
+
+  function setDotState(cls) {
+    for (let i = 0; i < 4; i++) {
+      const dot = document.getElementById('d' + i);
+      dot.classList.remove('filled', 'error', 'success');
+      dot.classList.add(cls);
+    }
+  }
+
+  function submit() {
+    if (state !== 'locked' || input.length < 4) return;
+
+    if (input === CORRECT) {
+      state = 'unlocked';
+      attempts = 0;
+      input = '';
+      setDotState('success');
+      setMsg('IDENTITY VERIFIED', 'ok');
+      setTimeout(() => { render(); startAutoLockTimer(); }, 700);
+
+    } else if (attempts + 1 >= 3) {
+      attempts++;
+      input = '';
+      state = 'lockout';
+      setDotState('error');
+      setMsg('ACCESS DENIED', 'err');
+      shakePinDisplay();
+      setTimeout(() => render(), 600);
+
+    } else {
+      attempts++;
+      input = '';
+      setDotState('error');
+      setMsg('WRONG PIN — ' + (3 - attempts) + ' ATTEMPT(S) LEFT', 'err');
+      shakePinDisplay();
+      setTimeout(() => {
+        updateDots();
+        updateAttempts();
+      }, 600);
+      updateAttempts();
+    }
+  }
+
+  function shakePinDisplay() {
+    const el = document.getElementById('pinDisplay');
+    el.classList.remove('shake');
+    void el.offsetWidth;
+    el.classList.add('shake');
+    el.classList.add('error-display');
+    setTimeout(() => el.classList.remove('error-display', 'shake'), 700);
+  }
+
+  function lockDoor() {
+    clearAutoLockTimer();
+    state = 'locked';
+    input = '';
+    setMsg('', '');
+    updateDots();
+    render();
+  }
+
+  function resetAll() {
+    clearAutoLockTimer();
+    state = 'locked';
+    input = '';
+    attempts = 0;
+    updateDots();
+    updateAttempts();
+    setMsg('SYSTEM RESET', 'ok');
+    render();
+    setTimeout(() => setMsg('', ''), 1500);
+  }
+
+  function setMsg(t, cls) {
+    const el = document.getElementById('msg');
+    el.textContent = t;
+    el.className = 'msg-line' + (cls ? ' ' + cls : '');
+  }
+
+  function updateAttempts() {
+    const fill  = document.getElementById('attemptFill');
+    const count = document.getElementById('attemptCount');
+    const pct   = Math.round((attempts / 3) * 100);
+    fill.style.width = pct + '%';
+    fill.style.background = attempts >= 3 ? 'var(--danger)' : attempts === 2 ? 'var(--gold)' : 'var(--accent2)';
+    count.textContent = attempts + '/3';
+    count.style.color = attempts >= 3 ? 'var(--danger)' : attempts === 2 ? 'var(--gold)' : 'var(--accent2)';
+  }
+
+  function render() {
+    const panel     = document.getElementById('doorPanel');
+    const frame     = document.getElementById('doorFrame');
+    const knob      = document.getElementById('knob');
+    const light     = document.getElementById('statusLight');
+    const label     = document.getElementById('statusLabel');
+    const cp        = document.getElementById('controlPanel');
+    const kArea     = document.getElementById('keypadArea');
+    const lArea     = document.getElementById('lockoutArea');
+    const uArea     = document.getElementById('unlockedArea');
+    const corners   = document.querySelectorAll('.corner');
+    const sysStatus = document.getElementById('sysStatus');
+
+    if (state === 'unlocked') {
+      panel.classList.add('open');
+      frame.className = 'door-frame unlocked-frame';
+      knob.className  = 'knob open';
+      light.className = 'status-light unlocked';
+      label.textContent = 'UNLOCKED';
+      cp.className = 'control-panel success-panel';
+      corners.forEach(c => c.style.borderColor = 'var(--success)');
+      kArea.style.display = 'none';
+      lArea.style.display = 'none';
+      uArea.style.display = '';
+      sysStatus.textContent = 'ACCESS GRANTED';
+      sysStatus.style.color = 'var(--success)';
+      document.getElementById('pinDisplay').classList.add('ok-display');
+
+    } else if (state === 'lockout') {
+      panel.classList.remove('open');
+      frame.className = 'door-frame lockout-frame';
+      knob.className  = 'knob danger';
+      light.className = 'status-light lockout';
+      label.textContent = 'LOCKOUT';
+      cp.className = 'control-panel danger-panel';
+      corners.forEach(c => c.style.borderColor = 'var(--danger)');
+      kArea.style.display = 'none';
+      lArea.style.display = '';
+      uArea.style.display = 'none';
+      sysStatus.textContent = 'LOCKOUT';
+      sysStatus.style.color = 'var(--danger)';
+      document.getElementById('pinDisplay').classList.add('error-display');
+      updateAttempts();
+
+    } else {
+      panel.classList.remove('open');
+      frame.className = 'door-frame';
+      knob.className  = 'knob';
+      light.className = 'status-light locked';
+      label.textContent = 'LOCKED';
+      cp.className = 'control-panel';
+      corners.forEach(c => c.style.borderColor = 'var(--accent)');
+      kArea.style.display = '';
+      lArea.style.display = 'none';
+      uArea.style.display = 'none';
+      sysStatus.textContent = 'ONLINE';
+      sysStatus.style.color = 'var(--success)';
+      document.getElementById('pinDisplay').classList.remove('ok-display', 'error-display');
+      document.querySelectorAll('.key').forEach(k => k.disabled = false);
+      updateAttempts();
+    }
+  }
+
+  render();
+</script>
+</body>
+</html>

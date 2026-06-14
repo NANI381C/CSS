@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+<title>Mac Calculator</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:sans-serif;
+}
+
+body{
+height:100vh;
+display:flex;
+justify-content:center;
+align-items:center;
+background:linear-gradient(135deg,#dee3e5,#08d3d0);
+}
+
+.calculator{
+width:260px;
+background:#120101;
+border-radius:30px;
+padding:20px;
+box-shadow:0 25px 50px rgba(0,0,0,0.4);
+}
+
+/* Mac window buttons */
+
+.mac-buttons{
+display:flex;
+gap:8px;
+margin-bottom:15px;
+}
+
+.mac-buttons span{
+width:12px;
+height:12px;
+border-radius:50%;
+display:inline-block;
+}
+
+.display{
+height:60px;
+color:white;
+font-size:40px;
+text-align:right;
+padding:10px;
+margin-bottom:15px;
+overflow:hidden;
+}
+
+.buttons{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:10px;
+}
+
+button{
+height:55px;
+border:none;
+border-radius:16px;
+font-size:20px;
+color:white;
+background:#333;
+cursor:pointer;
+}
+
+button:hover{
+opacity:0.8;
+}
+
+.gray{
+background:#a5a5a5;
+color:black;
+}
+
+.orange{
+background:#ff9f0a;
+}
+
+.zero{
+grid-column:span 2;
+border-radius:16px;
+text-align:center;
+padding-left:0;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="calculator">
+
+<div class="mac-buttons">
+<span class="red"></span>
+<span class="yellow"></span>
+<span class="green"></span>
+</div>
+
+<div id="display" class="display">0</div>
+
+<div class="buttons">
+
+<button class="gray" onclick="clearDisplay()">AC</button>
+<button class="gray" onclick="append('%')">%</button>
+<button class="gray" onclick="deleteLast()">⌫</button>
+<button class="orange" onclick="append('/')">÷</button>
+
+<button onclick="append('7')">7</button>
+<button onclick="append('8')">8</button>
+<button onclick="append('9')">9</button>
+<button class="orange" onclick="append('*')">×</button>
+
+<button onclick="append('4')">4</button>
+<button onclick="append('5')">5</button>
+<button onclick="append('6')">6</button>
+<button class="orange" onclick="append('-')">−</button>
+
+<button onclick="append('1')">1</button>
+<button onclick="append('2')">2</button>
+<button onclick="append('3')">3</button>
+<button class="orange" onclick="append('+')">+</button>
+
+<button onclick="append('0')" class="zero">0</button>
+<button onclick="append('.')">.</button>
+<button class="orange" onclick="calculate()">=</button>
+
+</div>
+</div>
+
+<script>
+
+let display=document.getElementById("display");
+
+function append(value){
+if(display.innerText=="0") display.innerText=value;
+else display.innerText+=value;
+}
+
+function clearDisplay(){
+display.innerText="0";
+}
+
+function deleteLast(){
+display.innerText=display.innerText.slice(0,-1);
+if(display.innerText=="") display.innerText="0";
+}
+
+function calculate(){
+try{
+display.innerText=eval(display.innerText);
+}
+catch{
+display.innerText="Error";
+}
+}
+
+</script>
+
+</body>
+</html>

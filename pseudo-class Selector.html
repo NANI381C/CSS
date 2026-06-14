@@ -1,0 +1,62 @@
+#@Dynamic pseudo-class Selector:
+#1. Link pseudo-class(blue)
+#2.visited(purpule)
+#3.active(red)
+#4.hover(pointer)
+#@Structural pseudo-class Selector:
+#1.first-child
+#2.last-child
+#3.nth-child(n)
+#4.first-of-type
+#5.last-of-type
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /*1.Link pseudo-class*/
+        a:link{
+            color:cadetblue;
+        }
+        /*2.visited*/
+        a:visited{
+            color:red;
+        }
+        /*3.active*/
+        a:active{
+            color:goldenrod;
+        }
+        /*4.hover*/
+        a:hover{
+            cursor:crosshair;
+        }
+        h1:first-child{
+            color:blue;
+        }
+        h1:last-child{
+            color:green;
+        }
+        h1:nth-child(2){
+            color:orange;
+        }
+        h1:first-of-type{
+            color:purple;
+        }
+        h1:last-of-type{
+            color:pink;
+        }   
+        
+    </style>
+</head>
+<body>
+    <a href="https://www.google.com" target="_blank">Google</a>
+    <h1>This is heading 1</h1>
+    <h1>This is heading 2</h1>
+    <h1>This is heading 3</h1>  
+    <h1>This is heading 4</h1>
+    <h1>This is heading 5</h1>
+</body>
+</html>

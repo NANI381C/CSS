@@ -1,0 +1,55 @@
+#1.after
+#2.before
+#3.first-letter
+#4.first-line 5.marker
+#5.selection
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /*1.after*/
+        h1::after{
+            content:"This is after pseudo-element";
+            color:blue;
+            background-color:powderblue;
+        }
+        /*2.before*/
+        h1::before{
+            content:"This is before pseudo-element";
+            color:green;
+            background-color:lightgreen;
+        }
+        /*3.first-letter*/
+        p::first-letter{
+            color:orange;
+            background-color:lightyellow;
+        }
+        /*4.first-line*/
+        p::first-line{
+            color:purple;
+            background-color: blanchedalmond;
+        }
+        /*5.selection*/
+        p::selection{
+            color:pink;
+            background-color:powderblue;
+        }
+        li::marker{
+            color:cyan;
+            background-color:lightcyan;
+        }
+    </style>
+</head>
+<body>
+    <h1>This is heading</h1>
+    <p>This is a paragraph. Select this text to see the selection pseudo-element in action.</p>
+    <ul>
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+    </ul>
+</body>
+</html>

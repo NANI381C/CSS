@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Booking</title>
+    <style>
+        nav{
+            height:75px;
+            background-color: black;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .parent{
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 100vh;
+        }
+        .child1, .child2, .child3{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid black;
+            padding: 10px;
+            border-radius:20px;
+        }
+        .input-field{
+            margin: 10px;
+            padding: 10px;
+            width: 200px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button{
+            padding: 10px 20px;
+            background-color: black;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJQAAACUCAMAAABC4vDmAAAAbFBMVEUAAAD////8/Pw5OTnX19fn5+cZGRnLy8vr6+ucnJzOzs4EBAQMDAyjo6OVlZXu7u68vLzCwsJOTk5nZ2f19fVcXFwrKyt3d3fh4eGsrKyysrIiIiIdHR1hYWFXV1d/f3+Li4tGRkYyMjJvb28CISTQAAAEMUlEQVR4nO2YiZKiMBCGk3ApiHIJCCqH7/+Om3RzBHBcZN2dmtr+qnbFJCS/3UmnexgjCIIgCIIgCIIgCIIgCIIgCIIgCIIgiJ+J990CJpgnSbAQdQhVu3NlzMjVU/1PRe24xF00H1zVbipRMOL4HaIWlnJAlC1FWd8mag6JIlH/qajJ+fSYNz+v035v2up5Xcu6IL1elJzvakT3KGpSlLV4qWwiiWGPouTHQQEPZdoeVml6x32GbybqmedB9mSmuDCF6j25fjq2Vq4TOoX8PUfHzK3zh0WVF1SEWBn4BMbC583UepNL2htrr77vWAzr8PiDooSoo5xPcQ7jhmHsIvQ+wQebgKj8JjgMeHxUlJNwrq8r5Lr3bqzHUpcLvVtIMk3UbicbPi1KLQizmoFfhCf1Xamyex85KJM7xdEPExDFkzPs87329mfdh2smRbeBMxd95NrowQIH9N1HC1TtysFSaps5cXpNP3v6pIQc3IW28dFHNYi6g+dEBd3qPyMHVRdNlFhpozdEqUXzq96f4VK2ejZhD+mrtnAqhNGJkr0rN9NbouQeiqbRElwGgf4mBrMM3KF334viznsJ91pLze4ZloIxzFLJU5v+ql88HgsgEgyizstr6QOiTsZ8BGyWpGG28h4vZr0POIBGL+oNQatFcR4sRrTgoYwZ8Bn6U4pEhY2s0y7+jqj98k24dWoW4dmcA9Hy+CeizN+IErx69qZc12e3QcKcRP2UTaLADtaiuTSnlnoqSuKz+LmlusO5TVT+/CWs9l6674Tua2B513mCW20UBTcGX5yts1hs9Fnq2YKB+o3+wGRuBtsoquZPDVGAR8YLWYaEmagjbJuIXcHR4VfzbxJ1A5Pk7bS1TaaWEi+Dp+TUfFJUaXa3hB6PMSBPLmQZJj1Pz+o6C3sshglCNpkhPXcZ6RZRyg0w6STrPvKFKGG2ejmQQYaUQO4CF/J0BxxC4WO2tU0U24Eo4Q9tdsGfiOKm5qE9BqYjWOOOYUq7ktNQZVtweja5T/5oAXkkN6u2PBxKo7KGYDhmCeprsscSqTz3SV6XzfhobDfG72m1wwnL7aLkewLDX2I6jtnFQSEWolT6eJHXWt71WkMlFaIqWXvJaw/SZcyHN7oPHAjJx3BToJxpRMfCYRwBWV8zzFD2qoZ+mQ3Hm/cUUuNE/Zoy7JQBbCMpqlUZN89U4Sa4JttJ9SDhCz7qAt9FqBczzy2iWBQm2q+0KixQIAXGC6dm9liMSrNaj1mIb4YiTFndqmH3SVP58MYGSVDh+l21mYSV2qB1GATBXk6dXuRDoDLwaN9VwafwYY8FMlpEpsD+0F2lOKn8l6l5ltnYaml2FD9ur/8GcW0ej/PXhZJt3G9RubKO+tF48IenFym+x16XJd5vRxAEQRAEQRAEQRAEQRAEQRAEQRAEQRDEz+IXTbQ1ASu0yYAAAAAASUVORK5CYII=" alt="" height="75" arrange-item="center">
+
+    </nav>
+<div class="parent">
+    <div class="child1">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTvRSRJ4ZTCdgZqleEq-ME28f6XLMTlCL4lpg&s" alt="Bike">
+        <input type="number" class="input-field" placeholder="Enter KM">
+        <button class="book-btn">Book now</button>
+    </div>
+
+    <div class="child2">
+        <img src="data:image/jpeg;base64,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" alt="Auto">
+        <input type="number" class="input-field" placeholder="Enter KM">
+        <button class="book-btn">Book now</button>
+    </div>
+
+    <div class="child3">
+        <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRJ1LI0w3IzxDk7efOQQo9ppnAz49Q7jUg4ug&s" alt="Car">
+        <input type="number" class="input-field" placeholder="Enter KM">
+        <button class="book-btn">Book now</button>
+    </div>
+</div>
+
+</body>
+</html>

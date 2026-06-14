@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Music Landing Page</title>
+    <link rel="stylesheet" href="style.css">
+  <style>
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar Styling */
+.navbar {
+    background-color: #f1e05a; /* That specific yellow from your photo */
+    display: flex;
+    justify-content: space-between; /* Pushes logo left and links right */
+    align-items: center;
+    padding: 15px 50px;
+    height: 80px;
+}
+
+/* Logo Section */
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #555;
+    display: flex;
+    align-items: center;
+}
+.logo {
+    font-size: 24px;
+    font-weight: bold;
+    color: #555;
+    display: flex;
+    align-items: center;
+    transition: color 0.3s ease;
+    border-bottom: white;
+}
+.apple-icon {
+    margin-right: 8px;
+}
+
+/* Navigation Links */
+.nav-links {
+    list-style: none;
+    display: flex;
+    gap: 30px; /* Space between the links */
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: #666;
+    font-weight: 600;
+    font-size: 14px;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #000;
+    transition: all 0.5s;
+} 
+</style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <div class="logo">
+            <span class="apple-icon">🍎</span> Music
+        </div>
+        <ul class="nav-links">
+            <li><a href="#">HOME</a></li>
+            <li><a href="#">ABOUT</a></li>
+            <li><a href="#">CONTACT</a></li>
+            <li><a href="#">LOGIN</a></li>
+        </ul>
+    </nav>
+
+</body>
+</html>

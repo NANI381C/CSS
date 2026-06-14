@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nova IDE</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-0: #0a0b0f;
+    --bg-1: #0f1117;
+    --bg-2: #141720;
+    --bg-3: #1a1e2a;
+    --bg-4: #1f2435;
+    --bg-hover: #242840;
+    --border: #252a3a;
+    --border-bright: #2e3450;
+    --accent: #7c6af7;
+    --accent2: #5eead4;
+    --accent3: #f472b6;
+    --accent4: #fb923c;
+    --text-1: #e2e8f4;
+    --text-2: #8892aa;
+    --text-3: #4a5270;
+    --green: #4ade80;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --blue: #60a5fa;
+    --purple: #a78bfa;
+    --cyan: #22d3ee;
+    --sidebar-w: 220px;
+    --panel-h: 200px;
+    --tab-h: 36px;
+    --status-h: 24px;
+    --activity-w: 48px;
+    --font-code: 'JetBrains Mono', monospace;
+    --font-ui: 'Syne', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-0);
+    color: var(--text-1);
+    font-family: var(--font-ui);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── TITLE BAR ── */
+  .titlebar {
+    height: 36px;
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    gap: 16px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .titlebar-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.05em;
+  }
+  .titlebar-logo svg { width: 18px; height: 18px; }
+  .titlebar-menu {
+    display: flex;
+    gap: 2px;
+  }
+  .titlebar-menu button {
+    background: none;
+    border: none;
+    color: var(--text-2);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .titlebar-menu button:hover { background: var(--bg-hover); color: var(--text-1); }
+  .titlebar-center {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .search-bar {
+    background: var(--bg-3);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 12px;
+    width: 340px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .search-bar:hover { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent)22; }
+  .search-bar span { color: var(--text-3); font-size: 12px; font-family: var(--font-code); flex: 1; }
+  .search-bar .kbd { color: var(--text-3); font-size: 10px; background: var(--bg-4); padding: 1px 5px; border-radius: 3px; }
+  .titlebar-actions { display: flex; gap: 4px; margin-left: auto; }
+  .titlebar-actions button {
+    background: none; border: none; color: var(--text-2);
+    font-size: 11px; padding: 3px 8px; border-radius: 4px;
+    cursor: pointer; transition: all 0.15s; font-family: var(--font-ui);
+  }
+  .titlebar-actions button:hover { background: var(--bg-hover); color: var(--text-1); }
+
+  /* ── MAIN LAYOUT ── */
+  .workbench {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  /* ── ACTIVITY BAR ── */
+  .activity-bar {
+    width: var(--activity-w);
+    background: var(--bg-1);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    gap: 2px;
+    flex-shrink: 0;
+    z-index: 10;
+  }
+  .activity-btn {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 8px; cursor: pointer; color: var(--text-3);
+    transition: all 0.15s; position: relative; border: none; background: none;
+    font-size: 18px;
+  }
+  .activity-btn:hover { color: var(--text-1); background: var(--bg-hover); }
+  .activity-btn.active { color: var(--accent); background: var(--accent)18; }
+  .activity-btn.active::before {
+    content: '';
+    position: absolute;
+    left: -6px;
+    width: 3px; height: 20px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
+  }
+  .activity-spacer { flex: 1; }
+  .activity-badge {
+    position: absolute; top: 4px; right: 4px;
+    width: 14px; height: 14px;
+    background: var(--accent3); border-radius: 50%;
+    font-size: 8px; font-family: var(--font-code);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: var(--sidebar-w);
+    background: var(--bg-1);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .sidebar-header {
+    padding: 10px 12px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .sidebar-header-actions { display: flex; gap: 4px; }
+  .sidebar-header-actions button {
+    background: none; border: none; color: var(--text-3);
+    cursor: pointer; font-size: 14px; padding: 2px; border-radius: 3px;
+    transition: all 0.15s;
+  }
+  .sidebar-header-actions button:hover { color: var(--text-1); background: var(--bg-hover); }
+  .file-tree { flex: 1; overflow-y: auto; padding-bottom: 8px; }
+  .file-tree::-webkit-scrollbar { width: 4px; }
+  .file-tree::-webkit-scrollbar-track { background: transparent; }
+  .file-tree::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+  .tree-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 12px; cursor: pointer;
+    font-size: 12.5px; font-family: var(--font-code);
+    color: var(--text-2); transition: all 0.1s;
+    white-space: nowrap; overflow: hidden;
+    border-radius: 4px; margin: 0 4px;
+  }
+  .tree-item:hover { background: var(--bg-hover); color: var(--text-1); }
+  .tree-item.active { background: var(--accent)22; color: var(--accent); }
+  .tree-item.folder { font-weight: 500; }
+  .tree-item .icon { font-size: 14px; flex-shrink: 0; }
+  .tree-indent { padding-left: 28px; }
+  .tree-indent2 { padding-left: 44px; }
+
+  /* ── EDITOR AREA ── */
+  .editor-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+
+  /* ── TABS ── */
+  .tabs-bar {
+    height: var(--tab-h);
+    background: var(--bg-1);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    overflow-x: auto;
+    flex-shrink: 0;
+  }
+  .tabs-bar::-webkit-scrollbar { height: 2px; }
+  .tabs-bar::-webkit-scrollbar-track { background: transparent; }
+  .tabs-bar::-webkit-scrollbar-thumb { background: var(--border-bright); }
+  .tab {
+    display: flex; align-items: center; gap: 6px;
+    padding: 0 12px;
+    min-width: 120px; max-width: 180px;
+    font-size: 12px; font-family: var(--font-code);
+    color: var(--text-3); cursor: pointer;
+    border-right: 1px solid var(--border);
+    transition: all 0.15s; flex-shrink: 0;
+    white-space: nowrap; overflow: hidden;
+    position: relative;
+  }
+  .tab:hover { background: var(--bg-hover); color: var(--text-2); }
+  .tab.active {
+    background: var(--bg-2); color: var(--text-1);
+    border-bottom: 2px solid var(--accent);
+  }
+  .tab .tab-icon { font-size: 13px; flex-shrink: 0; }
+  .tab .tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; }
+  .tab .tab-close {
+    opacity: 0; font-size: 13px; color: var(--text-3);
+    border-radius: 3px; padding: 1px 2px;
+    transition: all 0.1s; flex-shrink: 0;
+  }
+  .tab:hover .tab-close, .tab.active .tab-close { opacity: 1; }
+  .tab .tab-close:hover { background: var(--bg-hover); color: var(--text-1); }
+  .tab .tab-modified {
+    width: 7px; height: 7px;
+    background: var(--accent); border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* ── EDITOR CONTENT ── */
+  .editor-content {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+  .code-editor-wrap {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .line-numbers {
+    width: 52px;
+    background: var(--bg-2);
+    padding: 14px 8px 14px 0;
+    text-align: right;
+    font-size: 13px;
+    font-family: var(--font-code);
+    color: var(--text-3);
+    line-height: 1.65;
+    flex-shrink: 0;
+    overflow: hidden;
+    user-select: none;
+    border-right: 1px solid var(--border);
+  }
+  .code-area {
+    flex: 1;
+    background: var(--bg-2);
+    overflow: auto;
+    padding: 14px 14px 14px 12px;
+    font-size: 13px;
+    font-family: var(--font-code);
+    line-height: 1.65;
+  }
+  .code-area::-webkit-scrollbar { width: 8px; height: 8px; }
+  .code-area::-webkit-scrollbar-track { background: transparent; }
+  .code-area::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 4px; }
+  .code-line { display: flex; min-height: 21.5px; }
+  .code-line:hover { background: var(--bg-3); border-radius: 2px; }
+  .code-line.highlight-line { background: var(--accent)10; border-left: 2px solid var(--accent); }
+  pre { margin: 0; white-space: pre; }
+
+  /* Syntax colors */
+  .kw { color: var(--purple); }
+  .fn { color: var(--blue); }
+  .str { color: var(--green); }
+  .num { color: var(--accent4); }
+  .cmt { color: var(--text-3); font-style: italic; }
+  .cls { color: var(--cyan); }
+  .prop { color: var(--accent2); }
+  .punc { color: var(--text-2); }
+  .tag { color: var(--red); }
+  .attr { color: var(--yellow); }
+  .var { color: var(--text-1); }
+
+  /* ── MINIMAP ── */
+  .minimap {
+    width: 80px;
+    background: var(--bg-2);
+    border-left: 1px solid var(--border);
+    overflow: hidden;
+    position: relative;
+    opacity: 0.5;
+    flex-shrink: 0;
+  }
+  .minimap canvas { width: 100%; }
+  .minimap-viewport {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 40%;
+    background: var(--text-1)08;
+    border: 1px solid var(--text-1)15;
+    pointer-events: none;
+  }
+
+  /* ── PANEL ── */
+  .panel {
+    height: var(--panel-h);
+    background: var(--bg-1);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .panel-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    height: 32px;
+    align-items: center;
+    padding: 0 8px;
+    gap: 4px;
+  }
+  .panel-tab {
+    font-size: 11.5px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-3);
+    transition: all 0.15s;
+    border: none; background: none;
+    font-family: var(--font-ui);
+    font-weight: 600;
+  }
+  .panel-tab:hover { color: var(--text-2); background: var(--bg-hover); }
+  .panel-tab.active { color: var(--text-1); background: var(--bg-3); }
+  .panel-tab.active.terminal { color: var(--accent2); }
+  .panel-tab.active.problems { color: var(--red); }
+  .panel-tab.active.output { color: var(--yellow); }
+  .panel-tab.active.ai { color: var(--accent); }
+  .panel-content {
+    flex: 1;
+    overflow: auto;
+    padding: 8px 12px;
+    font-size: 12.5px;
+    font-family: var(--font-code);
+  }
+  .panel-content::-webkit-scrollbar { width: 4px; }
+  .panel-content::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+
+  /* Terminal */
+  .terminal-line { line-height: 1.7; color: var(--text-1); }
+  .terminal-line .prompt { color: var(--accent2); }
+  .terminal-line .cmd { color: var(--text-1); }
+  .terminal-line .out { color: var(--text-2); }
+  .terminal-line .err { color: var(--red); }
+  .terminal-input-wrap {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 12px 8px;
+  }
+  .terminal-input-wrap .prompt { color: var(--accent2); font-family: var(--font-code); font-size: 12.5px; }
+  .terminal-input {
+    flex: 1; background: none; border: none; outline: none;
+    color: var(--text-1); font-family: var(--font-code); font-size: 12.5px;
+    caret-color: var(--accent2);
+  }
+
+  /* Problems */
+  .problem-item {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 4px 0; border-bottom: 1px solid var(--border)60;
+    cursor: pointer;
+  }
+  .problem-item:hover { background: var(--bg-hover); border-radius: 4px; padding-left: 6px; }
+  .problem-icon { font-size: 13px; flex-shrink: 0; margin-top: 2px; }
+  .problem-msg { color: var(--text-1); font-size: 12px; }
+  .problem-loc { color: var(--text-3); font-size: 11px; }
+  .problem-source { color: var(--accent); font-size: 10px; background: var(--accent)18; padding: 1px 5px; border-radius: 3px; margin-left: auto; flex-shrink: 0; }
+
+  /* AI Panel */
+  .ai-panel { display: flex; flex-direction: column; height: 100%; }
+  .ai-messages { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+  .ai-msg { padding: 8px 10px; border-radius: 6px; font-size: 12px; line-height: 1.6; max-width: 90%; }
+  .ai-msg.user { background: var(--accent)22; color: var(--text-1); align-self: flex-end; border: 1px solid var(--accent)33; }
+  .ai-msg.assistant { background: var(--bg-3); color: var(--text-2); align-self: flex-start; border: 1px solid var(--border); }
+  .ai-msg.assistant strong { color: var(--accent2); }
+  .ai-input-wrap {
+    display: flex; gap: 6px; align-items: center;
+    padding: 6px 12px 8px; border-top: 1px solid var(--border);
+  }
+  .ai-input {
+    flex: 1; background: var(--bg-3); border: 1px solid var(--border-bright);
+    border-radius: 6px; padding: 6px 10px; color: var(--text-1);
+    font-family: var(--font-code); font-size: 12px; outline: none;
+    transition: border 0.15s;
+  }
+  .ai-input:focus { border-color: var(--accent); }
+  .ai-send {
+    background: var(--accent); border: none; color: white;
+    padding: 6px 12px; border-radius: 6px; cursor: pointer;
+    font-size: 12px; font-family: var(--font-ui); font-weight: 600;
+    transition: all 0.15s;
+  }
+  .ai-send:hover { background: var(--purple); }
+
+  /* ── STATUS BAR ── */
+  .status-bar {
+    height: var(--status-h);
+    background: var(--accent)cc;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 11px;
+    font-family: var(--font-code);
+    gap: 12px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .status-item {
+    display: flex; align-items: center; gap: 4px;
+    padding: 0 6px; height: 100%; cursor: pointer;
+    transition: background 0.15s; border-radius: 2px;
+    white-space: nowrap;
+  }
+  .status-item:hover { background: rgba(255,255,255,0.15); }
+  .status-spacer { flex: 1; }
+  .status-branch { background: rgba(0,0,0,0.2); border-radius: 3px; padding: 0 6px; }
+
+  /* ── RIGHT PANEL ── */
+  .right-panel {
+    width: 240px;
+    background: var(--bg-1);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .right-panel-header {
+    padding: 10px 12px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .right-section { border-bottom: 1px solid var(--border); }
+  .right-section-title {
+    padding: 8px 12px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-3);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .outline-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 3px 16px; font-size: 12px;
+    font-family: var(--font-code); color: var(--text-2);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .outline-item:hover { background: var(--bg-hover); color: var(--text-1); }
+  .outline-item .oi-icon { font-size: 12px; }
+  .outline-item .oi-type { font-size: 10px; color: var(--text-3); margin-left: auto; }
+  .git-change {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 12px; font-size: 12px;
+    font-family: var(--font-code); cursor: pointer;
+    transition: all 0.1s;
+  }
+  .git-change:hover { background: var(--bg-hover); }
+  .git-change .gc-status { font-size: 10px; font-weight: 700; width: 14px; flex-shrink: 0; }
+  .gc-M { color: var(--yellow); }
+  .gc-A { color: var(--green); }
+  .gc-D { color: var(--red); }
+  .gc-name { color: var(--text-2); flex: 1; }
+  .git-actions { display: flex; gap: 6px; padding: 8px 12px; }
+  .git-btn {
+    flex: 1; padding: 5px; background: var(--bg-3); border: 1px solid var(--border-bright);
+    color: var(--text-2); border-radius: 5px; cursor: pointer;
+    font-size: 11px; font-family: var(--font-ui); font-weight: 600;
+    transition: all 0.15s; text-align: center;
+  }
+  .git-btn:hover { background: var(--bg-hover); color: var(--text-1); border-color: var(--accent); }
+  .git-btn.primary { background: var(--accent)33; color: var(--accent); border-color: var(--accent)55; }
+  .git-btn.primary:hover { background: var(--accent); color: white; }
+
+  /* ── EXTENSIONS PANEL ── */
+  .ext-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 12px; cursor: pointer; transition: all 0.1s;
+    border-bottom: 1px solid var(--border)40;
+  }
+  .ext-item:hover { background: var(--bg-hover); }
+  .ext-icon { width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .ext-info { flex: 1; min-width: 0; }
+  .ext-name { font-size: 12px; color: var(--text-1); font-weight: 600; }
+  .ext-desc { font-size: 10px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ext-action {
+    background: var(--bg-3); border: 1px solid var(--border-bright); color: var(--accent);
+    padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;
+    font-family: var(--font-ui); font-weight: 600; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .ext-action:hover { background: var(--accent); color: white; border-color: var(--accent); }
+  .ext-action.installed { color: var(--green); border-color: var(--green)44; background: var(--green)11; }
+
+  /* Context menu */
+  .ctx-menu {
+    position: fixed; background: var(--bg-3); border: 1px solid var(--border-bright);
+    border-radius: 8px; padding: 4px; min-width: 160px; z-index: 1000;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6);
+    display: none;
+  }
+  .ctx-menu.show { display: block; }
+  .ctx-item {
+    display: flex; align-items: center; gap: 8px; padding: 6px 10px;
+    font-size: 12px; cursor: pointer; border-radius: 4px; color: var(--text-2);
+    transition: all 0.1s; font-family: var(--font-ui);
+  }
+  .ctx-item:hover { background: var(--bg-hover); color: var(--text-1); }
+  .ctx-item .ctx-kbd { margin-left: auto; font-size: 10px; color: var(--text-3); font-family: var(--font-code); }
+  .ctx-sep { height: 1px; background: var(--border); margin: 3px 6px; }
+
+  /* Notification */
+  .notif-stack { position: fixed; bottom: 30px; right: 12px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; }
+  .notif {
+    background: var(--bg-3); border: 1px solid var(--border-bright);
+    border-radius: 8px; padding: 10px 14px; min-width: 260px; max-width: 340px;
+    font-size: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    animation: slideIn 0.2s ease; display: flex; gap: 10px; align-items: flex-start;
+  }
+  .notif .notif-icon { font-size: 16px; flex-shrink: 0; }
+  .notif .notif-body { flex: 1; }
+  .notif .notif-title { font-weight: 700; color: var(--text-1); margin-bottom: 2px; font-family: var(--font-ui); }
+  .notif .notif-msg { color: var(--text-3); line-height: 1.4; }
+  .notif .notif-close { color: var(--text-3); cursor: pointer; font-size: 14px; }
+  .notif .notif-close:hover { color: var(--text-1); }
+  @keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+  /* Cursor blink */
+  .cursor { display: inline-block; width: 2px; height: 14px; background: var(--accent); animation: blink 1s step-end infinite; vertical-align: middle; margin-left: 1px; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Scrollbar global */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+  .hidden { display: none !important; }
+  .flex-col { display: flex; flex-direction: column; }
+
+  /* Command Palette */
+  .cmd-palette-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 3000;
+    display: none; align-items: flex-start; justify-content: center; padding-top: 80px;
+  }
+  .cmd-palette-overlay.show { display: flex; }
+  .cmd-palette {
+    background: var(--bg-3); border: 1px solid var(--border-bright);
+    border-radius: 10px; width: 560px; box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+    overflow: hidden;
+  }
+  .cmd-input-wrap { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .cmd-input-wrap .icon { color: var(--text-3); font-size: 16px; }
+  .cmd-input { flex: 1; background: none; border: none; outline: none; color: var(--text-1); font-family: var(--font-code); font-size: 14px; }
+  .cmd-results { max-height: 360px; overflow-y: auto; }
+  .cmd-result {
+    display: flex; align-items: center; gap: 10px; padding: 8px 16px;
+    cursor: pointer; transition: all 0.1s; color: var(--text-2); font-size: 13px;
+  }
+  .cmd-result:hover, .cmd-result.selected { background: var(--bg-hover); color: var(--text-1); }
+  .cmd-result .cr-icon { font-size: 15px; flex-shrink: 0; }
+  .cmd-result .cr-name { flex: 1; font-family: var(--font-code); }
+  .cmd-result .cr-category { font-size: 10px; color: var(--text-3); background: var(--bg-4); padding: 2px 6px; border-radius: 3px; }
+  .cmd-result .cr-kbd { font-size: 10px; color: var(--text-3); font-family: var(--font-code); margin-left: 8px; }
+
+  /* Breadcrumbs */
+  .breadcrumbs {
+    height: 24px; display: flex; align-items: center; gap: 4px;
+    padding: 0 12px; background: var(--bg-2);
+    border-bottom: 1px solid var(--border)60;
+    font-size: 11.5px; font-family: var(--font-code); color: var(--text-3);
+    flex-shrink: 0;
+  }
+  .breadcrumbs span { cursor: pointer; transition: color 0.1s; }
+  .breadcrumbs span:hover { color: var(--text-1); }
+  .breadcrumbs .sep { color: var(--text-3); opacity: 0.5; }
+  .breadcrumbs .current { color: var(--text-2); }
+
+  /* Scrolled indicator */
+  .scroll-indicator {
+    position: absolute; right: 88px; top: 0; bottom: 0; width: 2px;
+    background: linear-gradient(to bottom, transparent, var(--accent)40, transparent);
+    pointer-events: none;
+  }
+
+  /* Color picker */
+  .color-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+  /* Word wrap toggle */
+  .editor-toolbar {
+    height: 28px; display: flex; align-items: center; gap: 4px;
+    padding: 0 12px; border-bottom: 1px solid var(--border)60; background: var(--bg-2); flex-shrink: 0;
+  }
+  .toolbar-btn {
+    padding: 2px 8px; font-size: 11px; color: var(--text-3);
+    background: none; border: none; border-radius: 4px;
+    cursor: pointer; font-family: var(--font-ui); font-weight: 600;
+    transition: all 0.15s;
+  }
+  .toolbar-btn:hover { background: var(--bg-hover); color: var(--text-1); }
+  .toolbar-btn.active { background: var(--accent)22; color: var(--accent); }
+  .toolbar-sep { width: 1px; height: 14px; background: var(--border); margin: 0 4px; }
+
+</style>
+</head>
+<body>
+
+<!-- TITLE BAR -->
+<div class="titlebar">
+  <div class="titlebar-logo">
+    <svg viewBox="0 0 24 24" fill="none">
+      <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Nova IDE
+  </div>
+  <div class="titlebar-menu">
+    <button>File</button>
+    <button>Edit</button>
+    <button>View</button>
+    <button>Go</button>
+    <button>Run</button>
+    <button>Terminal</button>
+    <button>Help</button>
+  </div>
+  <div class="titlebar-center">
+    <div class="search-bar" onclick="openCmdPalette()">
+      <span>🔍 Go to file, command…</span>
+      <span class="kbd">⌘P</span>
+    </div>
+  </div>
+  <div class="titlebar-actions">
+    <button onclick="notify('▶ Running main.py…','Build Started','🚀')">▶ Run</button>
+    <button onclick="notify('🔍 Linting complete — 2 issues','Lint','⚡')">Lint</button>
+    <button onclick="notify('📦 Building project…','Build','🏗️')">Build</button>
+  </div>
+</div>
+
+<!-- WORKBENCH -->
+<div class="workbench">
+
+  <!-- ACTIVITY BAR -->
+  <div class="activity-bar">
+    <button class="activity-btn active" title="Explorer" onclick="setActivity('explorer',this)">📁</button>
+    <button class="activity-btn" title="Search" onclick="setActivity('search',this)">🔍</button>
+    <button class="activity-btn" title="Source Control" onclick="setActivity('git',this)" style="position:relative">
+      🌿
+      <span class="activity-badge">3</span>
+    </button>
+    <button class="activity-btn" title="Extensions" onclick="setActivity('ext',this)">🧩</button>
+    <button class="activity-btn" title="Debugger" onclick="setActivity('debug',this)">🐞</button>
+    <div class="activity-spacer"></div>
+    <button class="activity-btn" title="AI Assistant" onclick="setActivity('ai',this)">✨</button>
+    <button class="activity-btn" title="Settings" onclick="notify('Settings panel coming soon','Settings','⚙️')">⚙️</button>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+
+    <!-- EXPLORER -->
+    <div id="panel-explorer" class="flex-col" style="height:100%">
+      <div class="sidebar-header">
+        Explorer
+        <div class="sidebar-header-actions">
+          <button title="New File" onclick="notify('New file created: untitled.py','New File','📄')">📄</button>
+          <button title="New Folder" onclick="notify('New folder created','New Folder','📁')">📁</button>
+          <button title="Refresh" onclick="notify('File tree refreshed','Refresh','🔄')">🔄</button>
+        </div>
+      </div>
+      <div class="file-tree" id="file-tree">
+        <div class="tree-item folder" onclick="toggleFolder(this)">▾ 📁 nova-project</div>
+        <div class="tree-item folder tree-indent" onclick="toggleFolder(this)">▾ 📁 src</div>
+        <div class="tree-item tree-indent2 active" onclick="openTab('main.py','🐍')">🐍 main.py</div>
+        <div class="tree-item tree-indent2" onclick="openTab('utils.py','🐍')">🐍 utils.py</div>
+        <div class="tree-item tree-indent2" onclick="openTab('models.py','🐍')">🐍 models.py</div>
+        <div class="tree-item tree-indent2" onclick="openTab('config.json','📋')">📋 config.json</div>
+        <div class="tree-item folder tree-indent" onclick="toggleFolder(this)">▾ 📁 components</div>
+        <div class="tree-item tree-indent2" onclick="openTab('App.tsx','⚛️')">⚛️ App.tsx</div>
+        <div class="tree-item tree-indent2" onclick="openTab('Button.tsx','⚛️')">⚛️ Button.tsx</div>
+        <div class="tree-item tree-indent2" onclick="openTab('styles.css','🎨')">🎨 styles.css</div>
+        <div class="tree-item folder tree-indent" onclick="toggleFolder(this)">▾ 📁 tests</div>
+        <div class="tree-item tree-indent2" onclick="openTab('test_main.py','🧪')">🧪 test_main.py</div>
+        <div class="tree-item tree-indent2" onclick="openTab('test_utils.py','🧪')">🧪 test_utils.py</div>
+        <div class="tree-item tree-indent" onclick="openTab('README.md','📝')">📝 README.md</div>
+        <div class="tree-item tree-indent" onclick="openTab('package.json','📦')">📦 package.json</div>
+        <div class="tree-item tree-indent" onclick="openTab('.env','🔐')">.🔐 .env</div>
+        <div class="tree-item tree-indent" onclick="openTab('Dockerfile','🐳')">🐳 Dockerfile</div>
+      </div>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="panel-search" class="flex-col hidden" style="height:100%;padding:10px 8px">
+      <div class="sidebar-header" style="padding:0 4px 8px">Search</div>
+      <input style="background:var(--bg-3);border:1px solid var(--border-bright);border-radius:6px;padding:7px 10px;color:var(--text-1);font-family:var(--font-code);font-size:12px;outline:none;width:100%;margin-bottom:8px" placeholder="Search files…" oninput="filterSearch(this.value)">
+      <input style="background:var(--bg-3);border:1px solid var(--border-bright);border-radius:6px;padding:7px 10px;color:var(--text-1);font-family:var(--font-code);font-size:12px;outline:none;width:100%;margin-bottom:12px" placeholder="Replace…">
+      <div id="search-results" style="font-size:12px;font-family:var(--font-code);color:var(--text-3)">Type to search across files…</div>
+    </div>
+
+    <!-- GIT -->
+    <div id="panel-git" class="flex-col hidden" style="height:100%">
+      <div class="sidebar-header">Source Control</div>
+      <div class="right-section-title" style="padding:8px 12px 4px">CHANGES (3)</div>
+      <div class="git-change"><span class="gc-status gc-M">M</span><span class="gc-name">src/main.py</span></div>
+      <div class="git-change"><span class="gc-status gc-M">M</span><span class="gc-name">src/utils.py</span></div>
+      <div class="git-change"><span class="gc-status gc-A">A</span><span class="gc-name">components/Button.tsx</span></div>
+      <div class="git-actions">
+        <div class="git-btn" onclick="notify('Changes staged','Git','✅')">Stage All</div>
+        <div class="git-btn primary" onclick="notify('Committed to main','Git Commit','🌿')">Commit</div>
+      </div>
+      <div style="padding:8px 12px">
+        <input style="background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;padding:6px 10px;color:var(--text-1);font-size:12px;font-family:var(--font-code);outline:none;width:100%" placeholder="Commit message…">
+      </div>
+      <div class="right-section-title" style="padding:8px 12px 4px">BRANCHES</div>
+      <div class="git-change">🌿 <span class="gc-name" style="color:var(--accent2)">main</span><span style="font-size:10px;color:var(--text-3);margin-left:auto">current</span></div>
+      <div class="git-change">🌿 <span class="gc-name">feature/auth</span></div>
+      <div class="git-change">🌿 <span class="gc-name">fix/styles</span></div>
+      <div class="git-actions">
+        <div class="git-btn" onclick="notify('Pulling from remote…','Git Pull','⬇️')">Pull</div>
+        <div class="git-btn" onclick="notify('Pushing to remote…','Git Push','⬆️')">Push</div>
+      </div>
+    </div>
+
+    <!-- EXTENSIONS -->
+    <div id="panel-ext" class="flex-col hidden" style="height:100%;overflow-y:auto">
+      <div class="sidebar-header">Extensions</div>
+      <input style="background:var(--bg-3);border:1px solid var(--border-bright);border-radius:6px;padding:6px 10px;color:var(--text-1);font-family:var(--font-code);font-size:12px;outline:none;width:calc(100% - 16px);margin:0 8px 8px" placeholder="Search extensions…">
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#1e3a5f">🐍</div>
+        <div class="ext-info"><div class="ext-name">Python</div><div class="ext-desc">IntelliSense, linting, debugging</div></div>
+        <button class="ext-action installed">✓ On</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#1a3a2a">⚛️</div>
+        <div class="ext-info"><div class="ext-name">React + TypeScript</div><div class="ext-desc">JSX, TSX support</div></div>
+        <button class="ext-action installed">✓ On</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#2a1a3a">✨</div>
+        <div class="ext-info"><div class="ext-name">Nova AI Copilot</div><div class="ext-desc">AI code completions</div></div>
+        <button class="ext-action installed">✓ On</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#3a2a1a">🎨</div>
+        <div class="ext-info"><div class="ext-name">Prettier</div><div class="ext-desc">Code formatter</div></div>
+        <button class="ext-action" onclick="installExt(this)">Install</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#1a2a3a">🐳</div>
+        <div class="ext-info"><div class="ext-name">Docker</div><div class="ext-desc">Containers & Compose</div></div>
+        <button class="ext-action" onclick="installExt(this)">Install</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#3a1a1a">🦊</div>
+        <div class="ext-info"><div class="ext-name">GitLens</div><div class="ext-desc">Supercharge Git</div></div>
+        <button class="ext-action" onclick="installExt(this)">Install</button>
+      </div>
+      <div class="ext-item">
+        <div class="ext-icon" style="background:#1a3a3a">🗄️</div>
+        <div class="ext-info"><div class="ext-name">SQL Tools</div><div class="ext-desc">Database manager</div></div>
+        <button class="ext-action" onclick="installExt(this)">Install</button>
+      </div>
+    </div>
+
+    <!-- DEBUG -->
+    <div id="panel-debug" class="flex-col hidden" style="height:100%">
+      <div class="sidebar-header">Debug</div>
+      <div style="padding:12px;display:flex;flex-direction:column;gap:8px">
+        <button onclick="notify('Debugger started on port 5678','Debug','🐞')" style="padding:8px;background:var(--green)22;color:var(--green);border:1px solid var(--green)44;border-radius:6px;cursor:pointer;font-family:var(--font-ui);font-weight:700;font-size:12px">▶ Start Debugging</button>
+        <button onclick="notify('Breakpoint added at line 12','Breakpoint','🔴')" style="padding:6px;background:var(--bg-3);color:var(--text-2);border:1px solid var(--border-bright);border-radius:6px;cursor:pointer;font-family:var(--font-ui);font-size:12px">+ Add Breakpoint</button>
+      </div>
+      <div class="right-section-title">BREAKPOINTS</div>
+      <div class="git-change">🔴 <span class="gc-name">main.py:12</span></div>
+      <div class="git-change">🔴 <span class="gc-name">utils.py:34</span></div>
+      <div class="right-section-title" style="margin-top:8px">VARIABLES</div>
+      <div style="padding:4px 12px;font-size:12px;font-family:var(--font-code);color:var(--text-2);display:flex;flex-direction:column;gap:4px">
+        <div>result = <span style="color:var(--green)">"Hello World"</span></div>
+        <div>count = <span style="color:var(--accent4)">42</span></div>
+        <div>items = <span style="color:var(--cyan)">[1, 2, 3]</span></div>
+      </div>
+      <div class="right-section-title" style="margin-top:8px">CALL STACK</div>
+      <div style="padding:4px 12px;font-size:12px;font-family:var(--font-code);color:var(--text-2);display:flex;flex-direction:column;gap:4px">
+        <div style="color:var(--accent)">→ main() main.py:12</div>
+        <div>run() main.py:8</div>
+        <div>__main__ main.py:1</div>
+      </div>
+    </div>
+
+    <!-- AI SIDEBAR -->
+    <div id="panel-ai" class="flex-col hidden" style="height:100%">
+      <div class="sidebar-header">✨ AI Assistant</div>
+      <div style="padding:8px;font-size:11px;color:var(--text-3);font-family:var(--font-code)">Ask anything about your code…</div>
+      <div style="flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:6px" id="ai-sidebar-msgs">
+        <div class="ai-msg assistant"><strong>Nova AI</strong><br>I can help you explain code, find bugs, generate functions, write tests, and more. What do you need?</div>
+      </div>
+      <div style="border-top:1px solid var(--border);padding:8px;display:flex;gap:6px">
+        <input class="ai-input" id="ai-sidebar-input" placeholder="Ask AI…" style="font-size:11.5px" onkeydown="if(event.key==='Enter')sendAIMsg('sidebar')">
+        <button class="ai-send" onclick="sendAIMsg('sidebar')" style="font-size:11px;padding:5px 10px">→</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- EDITOR AREA -->
+  <div class="editor-area">
+    <div class="tabs-bar" id="tabs-bar">
+      <div class="tab active" data-file="main.py">
+        <span class="tab-icon">🐍</span>
+        <span class="tab-name">main.py</span>
+        <span class="tab-modified"></span>
+        <span class="tab-close" onclick="closeTab(event,this)">✕</span>
+      </div>
+      <div class="tab" data-file="utils.py" onclick="switchTab(this,'main.py')">
+        <span class="tab-icon">🐍</span>
+        <span class="tab-name">utils.py</span>
+        <span class="tab-close" onclick="closeTab(event,this)">✕</span>
+      </div>
+      <div class="tab" data-file="App.tsx" onclick="switchTab(this,'main.py')">
+        <span class="tab-icon">⚛️</span>
+        <span class="tab-name">App.tsx</span>
+        <span class="tab-close" onclick="closeTab(event,this)">✕</span>
+      </div>
+    </div>
+
+    <div class="breadcrumbs">
+      <span>nova-project</span><span class="sep"> › </span><span>src</span><span class="sep"> › </span><span class="current">main.py</span>
+    </div>
+
+    <div class="editor-toolbar">
+      <button class="toolbar-btn active" id="btn-syntax" onclick="toggleFeature('syntax',this)">Syntax</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" id="btn-wrap" onclick="toggleFeature('wrap',this)">Word Wrap</button>
+      <button class="toolbar-btn" id="btn-mini" onclick="toggleFeature('mini',this)">Minimap</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" onclick="notify('Code formatted with Prettier','Format','✨')">Format</button>
+      <button class="toolbar-btn" onclick="notify('File saved','Save','💾')">Save</button>
+      <div class="toolbar-sep"></div>
+      <button class="toolbar-btn" onclick="notify('Running tests…','Test Runner','🧪')">▶ Run Tests</button>
+      <div class="toolbar-sep"></div>
+      <span style="font-size:11px;color:var(--text-3);margin-left:4px;font-family:var(--font-code)">Python 3.11</span>
+      <span style="font-size:11px;color:var(--text-3);margin-left:8px">UTF-8</span>
+      <span style="font-size:11px;color:var(--text-3);margin-left:8px">LF</span>
+    </div>
+
+    <div class="editor-content">
+      <div class="code-editor-wrap" id="code-editor-wrap">
+        <div class="line-numbers" id="line-numbers"></div>
+        <div class="code-area" id="code-area" oncontextmenu="showCtxMenu(event)">
+          <!-- code injected by JS -->
+        </div>
+        <div class="minimap" id="minimap">
+          <canvas id="minimap-canvas" width="80" height="400"></canvas>
+          <div class="minimap-viewport"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL -->
+    <div class="panel">
+      <div class="panel-tabs">
+        <button class="panel-tab active terminal" id="ptab-terminal" onclick="switchPanel('terminal',this)">Terminal</button>
+        <button class="panel-tab problems" id="ptab-problems" onclick="switchPanel('problems',this)">Problems (2)</button>
+        <button class="panel-tab output" id="ptab-output" onclick="switchPanel('output',this)">Output</button>
+        <button class="panel-tab ai" id="ptab-ai" onclick="switchPanel('ai',this)">✨ AI Chat</button>
+      </div>
+      <div class="panel-content" id="panel-terminal">
+        <div class="terminal-line"><span class="prompt">nova@project:~$</span> <span class="cmd">python main.py</span></div>
+        <div class="terminal-line"><span class="out">Nova IDE initialized</span></div>
+        <div class="terminal-line"><span class="out">Loading modules…</span></div>
+        <div class="terminal-line"><span style="color:var(--green)">✓ All systems operational</span></div>
+        <div class="terminal-line"><span class="prompt">nova@project:~$</span> <span class="cmd">git status</span></div>
+        <div class="terminal-line"><span class="out">On branch main</span></div>
+        <div class="terminal-line"><span class="out">Changes not staged for commit:</span></div>
+        <div class="terminal-line"><span style="color:var(--red)">  modified: src/main.py</span></div>
+        <div class="terminal-line"><span style="color:var(--red)">  modified: src/utils.py</span></div>
+        <div class="terminal-line"><span style="color:var(--green)">  new file: components/Button.tsx</span></div>
+        <div class="terminal-line"><span class="prompt">nova@project:~$</span> <span class="cursor"></span></div>
+      </div>
+      <div class="panel-content hidden" id="panel-problems">
+        <div class="problem-item"><span class="problem-icon">🔴</span><div><div class="problem-msg">Variable 'result' is assigned but never used</div><div class="problem-loc">src/main.py:14</div></div><span class="problem-source">Pylance</span></div>
+        <div class="problem-item"><span class="problem-icon">🟡</span><div><div class="problem-msg">Missing return type annotation for 'process_data'</div><div class="problem-loc">src/utils.py:22</div></div><span class="problem-source">mypy</span></div>
+      </div>
+      <div class="panel-content hidden" id="panel-output">
+        <div style="color:var(--text-3);font-size:12px;line-height:1.8">
+          <div><span style="color:var(--accent2)">[Nova Build]</span> Starting build pipeline…</div>
+          <div><span style="color:var(--green)">✓</span> Compiled TypeScript (1.2s)</div>
+          <div><span style="color:var(--green)">✓</span> Bundled assets (0.4s)</div>
+          <div><span style="color:var(--yellow)">⚠</span> 2 lint warnings</div>
+          <div><span style="color:var(--green)">✓</span> Build complete: dist/ (2.3s total)</div>
+        </div>
+      </div>
+      <div class="panel-content hidden" id="panel-ai-chat" style="padding:0">
+        <div class="ai-panel">
+          <div class="ai-messages" id="ai-chat-msgs" style="padding:8px 12px">
+            <div class="ai-msg assistant"><strong>Nova AI</strong> · Powered by Claude<br>Hi! I can help explain code, suggest improvements, fix bugs, or generate new code. What would you like?</div>
+          </div>
+          <div class="ai-input-wrap">
+            <input class="ai-input" id="ai-chat-input" placeholder="Ask AI about your code… (Enter to send)" onkeydown="if(event.key==='Enter')sendAIMsg('chat')">
+            <button class="ai-send" onclick="sendAIMsg('chat')">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="right-panel-header">Outline & Info</div>
+    <div class="right-section">
+      <div class="right-section-title">SYMBOLS</div>
+      <div class="outline-item"><span class="oi-icon">🔷</span> NovaApp<span class="oi-type">class</span></div>
+      <div class="outline-item" style="padding-left:28px"><span class="oi-icon">🔹</span> __init__<span class="oi-type">method</span></div>
+      <div class="outline-item" style="padding-left:28px"><span class="oi-icon">🔹</span> run<span class="oi-type">method</span></div>
+      <div class="outline-item" style="padding-left:28px"><span class="oi-icon">🔹</span> process_data<span class="oi-type">method</span></div>
+      <div class="outline-item"><span class="oi-icon">🟣</span> load_config<span class="oi-type">fn</span></div>
+      <div class="outline-item"><span class="oi-icon">🟣</span> parse_args<span class="oi-type">fn</span></div>
+      <div class="outline-item"><span class="oi-icon">🟡</span> MAX_RETRIES<span class="oi-type">const</span></div>
+    </div>
+    <div class="right-section">
+      <div class="right-section-title">FILE INFO</div>
+      <div style="padding:4px 12px 10px;font-size:11.5px;font-family:var(--font-code);color:var(--text-3);display:flex;flex-direction:column;gap:4px">
+        <div>Lines: <span style="color:var(--text-2)">48</span></div>
+        <div>Size: <span style="color:var(--text-2)">1.2 KB</span></div>
+        <div>Modified: <span style="color:var(--text-2)">just now</span></div>
+        <div>Encoding: <span style="color:var(--text-2)">UTF-8</span></div>
+      </div>
+    </div>
+    <div class="right-section" style="flex:1;overflow-y:auto">
+      <div class="right-section-title">QUICK ACTIONS</div>
+      <div style="padding:6px 10px;display:flex;flex-direction:column;gap:5px">
+        <button onclick="notify('Running all tests…','Test','🧪')" style="padding:6px 10px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;color:var(--text-2);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-1)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-2)'">🧪 Run All Tests</button>
+        <button onclick="notify('Profiling started…','Profile','⚡')" style="padding:6px 10px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;color:var(--text-2);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-1)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-2)'">⚡ Profile Code</button>
+        <button onclick="notify('Generating docs…','Docs','📚')" style="padding:6px 10px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;color:var(--text-2);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-1)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-2)'">📚 Generate Docs</button>
+        <button onclick="notify('Refactoring suggestions ready','Refactor','🔧')" style="padding:6px 10px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;color:var(--text-2);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-1)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-2)'">🔧 Refactor Suggestions</button>
+        <button onclick="notify('Dependency check complete — 2 outdated','Deps','📦')" style="padding:6px 10px;background:var(--bg-3);border:1px solid var(--border-bright);border-radius:5px;color:var(--text-2);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--text-1)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.color='var(--text-2)'">📦 Check Dependencies</button>
+        <button onclick="notify('Opening deployment wizard…','Deploy','🚀')" style="padding:6px 10px;background:var(--accent)22;border:1px solid var(--accent)44;border-radius:5px;color:var(--accent);cursor:pointer;font-size:11.5px;text-align:left;font-family:var(--font-ui);font-weight:700;transition:all 0.15s" onmouseover="this.style.background='var(--accent)';this.style.color='white'" onmouseout="this.style.background='var(--accent)22';this.style.color='var(--accent)'">🚀 Deploy</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- STATUS BAR -->
+<div class="status-bar">
+  <div class="status-item status-branch">🌿 main</div>
+  <div class="status-item" onclick="notify('Syncing…','Sync','🔄')">⟳ 0↑ 0↓</div>
+  <div class="status-item" style="color:var(--red)">🔴 2 errors</div>
+  <div class="status-item" style="color:var(--yellow)">⚠ 1 warning</div>
+  <div class="status-spacer"></div>
+  <div class="status-item">Ln 14, Col 8</div>
+  <div class="status-item">Spaces: 4</div>
+  <div class="status-item">Python 3.11</div>
+  <div class="status-item" onclick="notify('Running linter…','Pylance','✨')">✨ Pylance</div>
+  <div class="status-item" onclick="notify('Live Share started','Live Share','👥')">👥 Live Share</div>
+  <div class="status-item" onclick="notify('Connected to GitHub Copilot','AI','🤖')">🤖 AI On</div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="notify('Cut','Edit','✂️');hideCtx()">✂️ Cut <span class="ctx-kbd">⌘X</span></div>
+  <div class="ctx-item" onclick="notify('Copied','Edit','📋');hideCtx()">📋 Copy <span class="ctx-kbd">⌘C</span></div>
+  <div class="ctx-item" onclick="notify('Pasted','Edit','📋');hideCtx()">📋 Paste <span class="ctx-kbd">⌘V</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="notify('Go to definition','Navigate','🔍');hideCtx()">🔍 Go to Definition <span class="ctx-kbd">F12</span></div>
+  <div class="ctx-item" onclick="notify('Finding references…','References','🔗');hideCtx()">🔗 Find References <span class="ctx-kbd">⇧F12</span></div>
+  <div class="ctx-item" onclick="notify('Renaming symbol…','Refactor','✏️');hideCtx()">✏️ Rename Symbol <span class="ctx-kbd">F2</span></div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="notify('AI explaining selection…','AI','✨');hideCtx()">✨ Explain with AI</div>
+  <div class="ctx-item" onclick="notify('AI fixing issue…','AI Fix','🔧');hideCtx()">🔧 Fix with AI</div>
+  <div class="ctx-item" onclick="notify('Generating tests for selection…','AI Tests','🧪');hideCtx()">🧪 Generate Tests</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="notify('Code formatted','Format','✨');hideCtx()">✨ Format Document <span class="ctx-kbd">⇧⌥F</span></div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div class="cmd-palette-overlay" id="cmd-palette-overlay" onclick="closeCmdPalette(event)">
+  <div class="cmd-palette">
+    <div class="cmd-input-wrap">
+      <span class="icon">🔍</span>
+      <input class="cmd-input" id="cmd-input" placeholder="Type a command or file name…" oninput="filterCmds(this.value)" onkeydown="cmdKey(event)">
+    </div>
+    <div class="cmd-results" id="cmd-results"></div>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div class="notif-stack" id="notif-stack"></div>
+
+<script>
+// ── CODE CONTENT ──
+const codeContent = `<span class="cmt"># Nova IDE — main.py</span>
+<span class="cmt"># A feature-rich Python application</span>
+
+<span class="kw">import</span> <span class="cls">os</span>
+<span class="kw">import</span> <span class="cls">json</span>
+<span class="kw">from</span> <span class="cls">typing</span> <span class="kw">import</span> <span class="cls">Optional</span><span class="punc">,</span> <span class="cls">List</span>
+<span class="kw">from</span> <span class="cls">dataclasses</span> <span class="kw">import</span> <span class="fn">dataclass</span>
+
+<span class="cls">MAX_RETRIES</span> <span class="punc">=</span> <span class="num">3</span>
+<span class="cls">VERSION</span> <span class="punc">=</span> <span class="str">"1.0.0"</span>
+
+<span class="punc">@</span><span class="fn">dataclass</span>
+<span class="kw">class</span> <span class="cls">NovaApp</span><span class="punc">:</span>
+    <span class="str">"""Main application class for Nova IDE."""</span>
+    name<span class="punc">:</span> <span class="cls">str</span>
+    config<span class="punc">:</span> <span class="cls">dict</span>
+    debug<span class="punc">:</span> <span class="cls">bool</span> <span class="punc">=</span> <span class="kw">False</span>
+
+    <span class="kw">def</span> <span class="fn">__init__</span><span class="punc">(</span><span class="var">self</span><span class="punc">,</span> <span class="var">name</span><span class="punc">:</span> <span class="cls">str</span><span class="punc">)</span> <span class="punc">-></span> <span class="kw">None</span><span class="punc">:</span>
+        <span class="var">self</span><span class="punc">.</span><span class="prop">name</span> <span class="punc">=</span> <span class="var">name</span>
+        <span class="var">self</span><span class="punc">.</span><span class="prop">config</span> <span class="punc">=</span> <span class="fn">load_config</span><span class="punc">()</span>
+        <span class="fn">print</span><span class="punc">(</span><span class="str">f"Nova IDE v{</span><span class="cls">VERSION</span><span class="str">} initialized"</span><span class="punc">)</span>
+
+    <span class="kw">def</span> <span class="fn">run</span><span class="punc">(</span><span class="var">self</span><span class="punc">)</span> <span class="punc">-></span> <span class="kw">None</span><span class="punc">:</span>
+        <span class="str">"""Start the IDE application loop."""</span>
+        <span class="kw">while</span> <span class="kw">True</span><span class="punc">:</span>
+            <span class="kw">try</span><span class="punc">:</span>
+                <span class="var">result</span> <span class="punc">=</span> <span class="var">self</span><span class="punc">.</span><span class="fn">process_data</span><span class="punc">()</span>
+                <span class="kw">if</span> <span class="var">result</span> <span class="kw">is</span> <span class="kw">None</span><span class="punc">:</span>
+                    <span class="kw">break</span>
+            <span class="kw">except</span> <span class="cls">KeyboardInterrupt</span><span class="punc">:</span>
+                <span class="fn">print</span><span class="punc">(</span><span class="str">"\\nGoodbye!"</span><span class="punc">)</span>
+                <span class="kw">break</span>
+
+    <span class="kw">def</span> <span class="fn">process_data</span><span class="punc">(</span><span class="var">self</span><span class="punc">,</span> <span class="var">data</span><span class="punc">:</span> <span class="cls">Optional</span><span class="punc">[</span><span class="cls">List</span><span class="punc">]</span> <span class="punc">=</span> <span class="kw">None</span><span class="punc">)</span><span class="punc">:</span>
+        <span class="str">"""Process and transform input data."""</span>
+        <span class="kw">if</span> <span class="kw">not</span> <span class="var">data</span><span class="punc">:</span>
+            <span class="kw">return</span> <span class="punc">[]</span>
+        <span class="kw">return</span> <span class="punc">[</span><span class="var">x</span> <span class="punc">*</span> <span class="num">2</span> <span class="kw">for</span> <span class="var">x</span> <span class="kw">in</span> <span class="var">data</span> <span class="kw">if</span> <span class="fn">isinstance</span><span class="punc">(</span><span class="var">x</span><span class="punc">,</span> <span class="punc">(</span><span class="cls">int</span><span class="punc">,</span> <span class="cls">float</span><span class="punc">))</span><span class="punc">]</span>
+
+
+<span class="kw">def</span> <span class="fn">load_config</span><span class="punc">(</span><span class="var">path</span><span class="punc">:</span> <span class="cls">str</span> <span class="punc">=</span> <span class="str">"config.json"</span><span class="punc">)</span> <span class="punc">-></span> <span class="cls">dict</span><span class="punc">:</span>
+    <span class="str">"""Load configuration from JSON file."""</span>
+    <span class="kw">try</span><span class="punc">:</span>
+        <span class="kw">with</span> <span class="fn">open</span><span class="punc">(</span><span class="var">path</span><span class="punc">)</span> <span class="kw">as</span> <span class="var">f</span><span class="punc">:</span>
+            <span class="kw">return</span> <span class="cls">json</span><span class="punc">.</span><span class="fn">load</span><span class="punc">(</span><span class="var">f</span><span class="punc">)</span>
+    <span class="kw">except</span> <span class="cls">FileNotFoundError</span><span class="punc">:</span>
+        <span class="kw">return</span> <span class="punc">{}</span>
+
+
+<span class="kw">if</span> <span class="var">__name__</span> <span class="punc">==</span> <span class="str">"__main__"</span><span class="punc">:</span>
+    <span class="var">app</span> <span class="punc">=</span> <span class="cls">NovaApp</span><span class="punc">(</span><span class="str">"Nova"</span><span class="punc">)</span>
+    <span class="var">app</span><span class="punc">.</span><span class="fn">run</span><span class="punc">()</span>`;
+
+// Render code
+function renderCode() {
+  const lines = codeContent.split('\n');
+  const codeArea = document.getElementById('code-area');
+  const lineNums = document.getElementById('line-numbers');
+  let html = '';
+  let nums = '';
+  lines.forEach((line, i) => {
+    const highlight = (i === 12 || i === 27) ? ' highlight-line' : '';
+    html += `<div class="code-line${highlight}"><pre>${line || ' '}</pre></div>`;
+    nums += `<div>${i + 1}</div>`;
+  });
+  codeArea.innerHTML = html;
+  lineNums.innerHTML = nums;
+}
+renderCode();
+
+// Draw minimap
+function drawMinimap() {
+  const canvas = document.getElementById('minimap-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = 80; canvas.height = 500;
+  ctx.fillStyle = '#141720';
+  ctx.fillRect(0, 0, 80, 500);
+  const colors = ['#7c6af7','#22d3ee','#4ade80','#8892aa','#4a5270'];
+  for (let i = 0; i < 48; i++) {
+    const c = colors[Math.floor(Math.random() * colors.length)];
+    ctx.fillStyle = c + '60';
+    const w = 20 + Math.random() * 50;
+    const indent = Math.random() * 15;
+    ctx.fillRect(indent, i * 10 + 2, w, 3);
+  }
+}
+drawMinimap();
+
+// ── TABS ──
+function openTab(name, icon) {
+  const bar = document.getElementById('tabs-bar');
+  const existing = bar.querySelector(`[data-file="${name}"]`);
+  if (existing) { switchTab(existing); return; }
+  const tab = document.createElement('div');
+  tab.className = 'tab'; tab.dataset.file = name;
+  tab.innerHTML = `<span class="tab-icon">${icon}</span><span class="tab-name">${name}</span><span class="tab-close" onclick="closeTab(event,this)">✕</span>`;
+  tab.onclick = () => switchTab(tab);
+  bar.appendChild(tab);
+  switchTab(tab);
+  document.querySelector('.breadcrumbs .current').textContent = name;
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  document.querySelector('.breadcrumbs .current').textContent = tab.dataset.file;
+}
+
+function closeTab(e, btn) {
+  e.stopPropagation();
+  const tab = btn.closest('.tab');
+  const wasActive = tab.classList.contains('active');
+  const prev = tab.previousElementSibling;
+  tab.remove();
+  if (wasActive && prev) prev.classList.add('active');
+}
+
+// ── ACTIVITY ──
+function setActivity(panel, btn) {
+  document.querySelectorAll('.activity-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['explorer','search','git','ext','debug','ai'].forEach(p => {
+    const el = document.getElementById('panel-' + p);
+    if (el) el.classList.add('hidden');
+  });
+  const target = document.getElementById('panel-' + panel);
+  if (target) target.classList.remove('hidden');
+}
+
+// ── PANEL ──
+function switchPanel(name, btn) {
+  document.querySelectorAll('.panel-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  ['terminal','problems','output','ai-chat'].forEach(p => {
+    document.getElementById('panel-' + p).classList.add('hidden');
+  });
+  document.getElementById('panel-' + name).classList.remove('hidden');
+}
+
+// ── FEATURES ──
+function toggleFeature(f, btn) {
+  btn.classList.toggle('active');
+  if (f === 'mini') document.getElementById('minimap').style.display = btn.classList.contains('active') ? 'block' : 'none';
+}
+
+// ── NOTIFICATIONS ──
+let notifId = 0;
+function notify(msg, title, icon) {
+  const stack = document.getElementById('notif-stack');
+  const id = ++notifId;
+  const el = document.createElement('div');
+  el.className = 'notif';
+  el.id = 'notif-' + id;
+  el.innerHTML = `<span class="notif-icon">${icon}</span><div class="notif-body"><div class="notif-title">${title}</div><div class="notif-msg">${msg}</div></div><span class="notif-close" onclick="this.closest('.notif').remove()">✕</span>`;
+  stack.appendChild(el);
+  setTimeout(() => { const n = document.getElementById('notif-' + id); if (n) n.remove(); }, 4000);
+}
+
+// ── CONTEXT MENU ──
+function showCtxMenu(e) {
+  e.preventDefault();
+  const menu = document.getElementById('ctx-menu');
+  menu.style.left = e.clientX + 'px';
+  menu.style.top = e.clientY + 'px';
+  menu.classList.add('show');
+}
+function hideCtx() { document.getElementById('ctx-menu').classList.remove('show'); }
+document.addEventListener('click', hideCtx);
+
+// ── COMMAND PALETTE ──
+const commands = [
+  { icon: '📄', name: 'New File', category: 'File', kbd: '⌘N' },
+  { icon: '📁', name: 'Open Folder', category: 'File', kbd: '⌘O' },
+  { icon: '💾', name: 'Save All', category: 'File', kbd: '⌘⇧S' },
+  { icon: '🔍', name: 'Find in Files', category: 'Edit', kbd: '⌘⇧F' },
+  { icon: '✏️', name: 'Rename Symbol', category: 'Edit', kbd: 'F2' },
+  { icon: '🎨', name: 'Format Document', category: 'Edit', kbd: '⇧⌥F' },
+  { icon: '🌿', name: 'Git: Commit', category: 'Git' },
+  { icon: '⬆️', name: 'Git: Push', category: 'Git' },
+  { icon: '⬇️', name: 'Git: Pull', category: 'Git' },
+  { icon: '🔷', name: 'Go to Symbol', category: 'Navigate', kbd: '⌘⇧O' },
+  { icon: '🔹', name: 'Go to Line', category: 'Navigate', kbd: '⌃G' },
+  { icon: '🐞', name: 'Start Debugging', category: 'Debug', kbd: 'F5' },
+  { icon: '🧪', name: 'Run All Tests', category: 'Test' },
+  { icon: '📦', name: 'Install Extension', category: 'Extension' },
+  { icon: '🚀', name: 'Deploy to Production', category: 'Deploy' },
+  { icon: '✨', name: 'Ask AI', category: 'AI' },
+  { icon: '🔧', name: 'Refactor with AI', category: 'AI' },
+  { icon: '⚙️', name: 'Open Settings', category: 'Settings', kbd: '⌘,' },
+  { icon: '🎨', name: 'Change Theme', category: 'UI' },
+  { icon: '📚', name: 'Generate Documentation', category: 'Tools' },
+];
+
+let selIdx = 0;
+function openCmdPalette() {
+  document.getElementById('cmd-palette-overlay').classList.add('show');
+  document.getElementById('cmd-input').value = '';
+  renderCmds(commands);
+  setTimeout(() => document.getElementById('cmd-input').focus(), 50);
+}
+function closeCmdPalette(e) {
+  if (e.target.id === 'cmd-palette-overlay') document.getElementById('cmd-palette-overlay').classList.remove('show');
+}
+function filterCmds(q) {
+  const filtered = commands.filter(c => c.name.toLowerCase().includes(q.toLowerCase()) || c.category.toLowerCase().includes(q.toLowerCase()));
+  renderCmds(filtered);
+}
+function renderCmds(list) {
+  const el = document.getElementById('cmd-results');
+  selIdx = 0;
+  el.innerHTML = list.map((c, i) => `<div class="cmd-result${i===0?' selected':''}" onclick="runCmd('${c.name}')"><span class="cr-icon">${c.icon}</span><span class="cr-name">${c.name}</span><span class="cr-category">${c.category}</span>${c.kbd ? `<span class="cr-kbd">${c.kbd}</span>` : ''}</div>`).join('');
+}
+function cmdKey(e) {
+  const items = document.querySelectorAll('.cmd-result');
+  if (e.key === 'ArrowDown') { selIdx = Math.min(selIdx+1, items.length-1); }
+  if (e.key === 'ArrowUp') { selIdx = Math.max(selIdx-1, 0); }
+  if (e.key === 'Enter') { if (items[selIdx]) { runCmd(items[selIdx].querySelector('.cr-name').textContent); } }
+  if (e.key === 'Escape') { document.getElementById('cmd-palette-overlay').classList.remove('show'); }
+  items.forEach((el, i) => el.classList.toggle('selected', i === selIdx));
+}
+function runCmd(name) {
+  document.getElementById('cmd-palette-overlay').classList.remove('show');
+  notify(`Executed: ${name}`, 'Command', '⚡');
+}
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'p') { e.preventDefault(); openCmdPalette(); }
+  if ((e.metaKey || e.ctrlKey) && e.key === 's') { e.preventDefault(); notify('File saved', 'Save', '💾'); }
+});
+
+// ── AI CHAT ──
+const aiResponses = [
+  'I can see you\'re working on a Python application. The <code>process_data</code> method looks good, but you could add error handling for edge cases.',
+  'Looking at your code structure, I\'d suggest adding type hints to all function parameters for better IDE support and documentation.',
+  'The <code>load_config</code> function could benefit from a default config fallback. Want me to generate that code?',
+  'I notice you\'re using a dataclass — great choice! Consider adding <code>__post_init__</code> for validation logic.',
+  'For better testability, consider dependency injection in the <code>NovaApp</code> constructor instead of calling <code>load_config()</code> directly.',
+];
+let aiIdx = 0;
+
+function sendAIMsg(panel) {
+  const input = document.getElementById(panel === 'chat' ? 'ai-chat-input' : 'ai-sidebar-input');
+  const container = document.getElementById(panel === 'chat' ? 'ai-chat-msgs' : 'ai-sidebar-msgs');
+  const val = input.value.trim();
+  if (!val) return;
+  const userMsg = document.createElement('div');
+  userMsg.className = 'ai-msg user';
+  userMsg.textContent = val;
+  container.appendChild(userMsg);
+  input.value = '';
+  setTimeout(() => {
+    const aiMsg = document.createElement('div');
+    aiMsg.className = 'ai-msg assistant';
+    aiMsg.innerHTML = `<strong>Nova AI</strong><br>${aiResponses[aiIdx % aiResponses.length]}`;
+    aiIdx++;
+    container.appendChild(aiMsg);
+    container.scrollTop = container.scrollHeight;
+  }, 600);
+  container.scrollTop = container.scrollHeight;
+}
+
+// Search
+function filterSearch(q) {
+  const el = document.getElementById('search-results');
+  if (!q) { el.innerHTML = 'Type to search across files…'; el.style.color = 'var(--text-3)'; return; }
+  el.style.color = 'var(--text-2)';
+  const results = [
+    { file: 'main.py', line: 12, match: `result = self.process_data()` },
+    { file: 'utils.py', line: 22, match: `def process_data(items):` },
+    { file: 'config.json', line: 3, match: `"process": true` },
+  ].filter(r => r.match.toLowerCase().includes(q.toLowerCase()) || r.file.includes(q));
+  el.innerHTML = results.length
+    ? results.map(r => `<div style="padding:4px 0;border-bottom:1px solid var(--border)40;cursor:pointer" onclick="notify('Opened ${r.file}:${r.line}','Navigate','🔍')" onmouseover="this.style.background='var(--bg-hover)'" onmouseout="this.style.background='none'"><div style="color:var(--accent2)">${r.file}:${r.line}</div><div style="color:var(--text-3);font-size:11px">${r.match.replace(new RegExp(q,'gi'), m => `<span style="color:var(--accent);background:var(--accent)22">${m}</span>`)}</div></div>`).join('')
+    : `<div style="color:var(--text-3)">No results for "${q}"</div>`;
+}
+
+// Extension install
+function installExt(btn) {
+  btn.textContent = 'Installing…';
+  btn.disabled = true;
+  setTimeout(() => {
+    btn.textContent = '✓ On';
+    btn.classList.add('installed');
+    btn.disabled = false;
+    notify('Extension installed successfully', 'Extensions', '🧩');
+  }, 1500);
+}
+
+// Welcome notification
+setTimeout(() => notify('Nova IDE ready — all systems go!', 'Welcome', '✨'), 800);
+</script>
+</body>
+</html>

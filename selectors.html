@@ -1,0 +1,42 @@
+#Simple Selector
+#1.id#2.class#3.tag
+#4.Grouping#5.Universal
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        /*1.id selector*/
+        #heading{
+            color:blue;
+            background-color:powderblue;
+        }
+        /*2.class selector*/
+        .subheading{
+            color:green;
+            background-color:lightgreen;
+        }
+        h1[tag="heading"]{
+            color:orange;
+            background-color:lightyellow;
+        }
+        h1,u,i{
+            color:purple;
+            background-color: blanchedalmond;
+        }
+        *{
+            color:pink;
+            background-color:powderblue;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="heading">This is heading</h1>
+    <h1 class="subheading">This is subheading</h1>
+    <h1 tag="heading">This is heading</h1>
+    <u>This is underlined text</u>
+    <i>This is italic text</i>
+</body>
+</html>
